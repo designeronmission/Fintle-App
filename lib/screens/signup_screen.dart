@@ -5,7 +5,6 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import 'business_setup_screen.dart';
-import 'phone_login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -21,7 +20,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _mobileController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
@@ -44,7 +43,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    
+
     if (!_acceptTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -54,23 +53,23 @@ class _SignupScreenState extends State<SignupScreen> {
       );
       return;
     }
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       final result = await _authService.signUpWithEmail(
         _businessNameController.text.trim(),
         _emailController.text.trim(),
         _passwordController.text,
       );
-      
+
       if (result.success && mounted) {
         setState(() {
           _isLoading = false;
         });
-        
+
         if (mounted) {
           Navigator.pushReplacement(
             context,
@@ -116,7 +115,7 @@ class _SignupScreenState extends State<SignupScreen> {
       );
       return;
     }
-    
+
     if (_mobileController.text.length < 10) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -126,7 +125,7 @@ class _SignupScreenState extends State<SignupScreen> {
       );
       return;
     }
-    
+
     if (!_acceptTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -136,7 +135,7 @@ class _SignupScreenState extends State<SignupScreen> {
       );
       return;
     }
-    
+
     // Navigate to phone verification
     Navigator.push(
       context,
@@ -159,23 +158,23 @@ class _SignupScreenState extends State<SignupScreen> {
       );
       return;
     }
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       final result = await _authService.signInWithGoogle();
-      
+
       if (result.success && mounted) {
         setState(() {
           _isLoading = false;
         });
-        
+
         final prefs = await SharedPreferences.getInstance();
         final businessName = prefs.getString('current_user_name') ?? '';
         final email = prefs.getString('current_user_email') ?? '';
-        
+
         if (mounted) {
           Navigator.pushReplacement(
             context,
@@ -229,7 +228,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 20),
-                    
+
                     // Back Button
                     GestureDetector(
                       onTap: _navigateToSignIn,
@@ -246,9 +245,9 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 30),
-                    
+
                     // Title
                     Text(
                       'Create Account',
@@ -266,9 +265,9 @@ class _SignupScreenState extends State<SignupScreen> {
                         color: AppTheme.subtitleGray,
                       ),
                     ),
-                    
+
                     const SizedBox(height: 40),
-                    
+
                     // Email Signup Form (default)
                     if (_activeSignupForm == 'email') ...[
                       Form(
@@ -290,9 +289,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                 return null;
                               },
                             ),
-                            
+
                             const SizedBox(height: 16),
-                            
+
                             // Email Field
                             _buildTextField(
                               controller: _emailController,
@@ -303,15 +302,16 @@ class _SignupScreenState extends State<SignupScreen> {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your email';
                                 }
-                                if (!value.contains('@') || !value.contains('.')) {
+                                if (!value.contains('@') ||
+                                    !value.contains('.')) {
                                   return 'Enter a valid email address';
                                 }
                                 return null;
                               },
                             ),
-                            
+
                             const SizedBox(height: 16),
-                            
+
                             // Password Field
                             _buildTextField(
                               controller: _passwordController,
@@ -320,7 +320,9 @@ class _SignupScreenState extends State<SignupScreen> {
                               obscureText: !_isPasswordVisible,
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                                  _isPasswordVisible
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
                                   color: AppTheme.subtitleGray,
                                 ),
                                 onPressed: () {
@@ -339,9 +341,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                 return null;
                               },
                             ),
-                            
+
                             const SizedBox(height: 16),
-                            
+
                             // Confirm Password Field
                             _buildTextField(
                               controller: _confirmPasswordController,
@@ -350,12 +352,15 @@ class _SignupScreenState extends State<SignupScreen> {
                               obscureText: !_isConfirmPasswordVisible,
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                                  _isConfirmPasswordVisible
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
                                   color: AppTheme.subtitleGray,
                                 ),
                                 onPressed: () {
                                   setState(() {
-                                    _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                                    _isConfirmPasswordVisible =
+                                        !_isConfirmPasswordVisible;
                                   });
                                 },
                               ),
@@ -369,9 +374,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                 return null;
                               },
                             ),
-                            
+
                             const SizedBox(height: 24),
-                            
+
                             // Email Signup Button
                             SizedBox(
                               width: double.infinity,
@@ -399,7 +404,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ),
                     ],
-                    
+
                     // Mobile Signup Form
                     if (_activeSignupForm == 'mobile') ...[
                       Column(
@@ -416,9 +421,9 @@ class _SignupScreenState extends State<SignupScreen> {
                               return null;
                             },
                           ),
-                          
+
                           const SizedBox(height: 16),
-                          
+
                           // Mobile Number Field with Country Code
                           Container(
                             decoration: BoxDecoration(
@@ -429,7 +434,8 @@ class _SignupScreenState extends State<SignupScreen> {
                             child: Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
                                   child: Row(
                                     children: [
                                       const Text(
@@ -456,22 +462,24 @@ class _SignupScreenState extends State<SignupScreen> {
                                     decoration: const InputDecoration(
                                       hintText: 'Enter mobile number',
                                       border: InputBorder.none,
-                                      contentPadding: EdgeInsets.symmetric(vertical: 16),
+                                      contentPadding:
+                                          EdgeInsets.symmetric(vertical: 16),
                                     ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          
+
                           const SizedBox(height: 24),
-                          
+
                           // Mobile Signup Button
                           SizedBox(
                             width: double.infinity,
                             height: 55,
                             child: ElevatedButton(
-                              onPressed: _isLoading ? null : _handleMobileSignUp,
+                              onPressed:
+                                  _isLoading ? null : _handleMobileSignUp,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppTheme.primaryDarkBlue,
                                 foregroundColor: Colors.white,
@@ -492,9 +500,9 @@ class _SignupScreenState extends State<SignupScreen> {
                         ],
                       ),
                     ],
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Terms & Conditions
                     Row(
                       children: [
@@ -518,13 +526,15 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 30),
-                    
+
                     // OR Divider
                     Row(
                       children: [
-                        Expanded(child: Divider(color: Colors.grey.shade300, thickness: 1)),
+                        Expanded(
+                            child: Divider(
+                                color: Colors.grey.shade300, thickness: 1)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
@@ -536,17 +546,19 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                           ),
                         ),
-                        Expanded(child: Divider(color: Colors.grey.shade300, thickness: 1)),
+                        Expanded(
+                            child: Divider(
+                                color: Colors.grey.shade300, thickness: 1)),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 30),
-                    
+
                     // Google Sign Up Button with Local Image
                     _buildGoogleSignupButton(),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Toggle Button between Email and Mobile
                     if (_activeSignupForm == 'email')
                       _buildToggleButton(
@@ -558,7 +570,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           });
                         },
                       ),
-                    
+
                     if (_activeSignupForm == 'mobile')
                       _buildToggleButton(
                         icon: Icons.email_outlined,
@@ -569,9 +581,9 @@ class _SignupScreenState extends State<SignupScreen> {
                           });
                         },
                       ),
-                    
+
                     const SizedBox(height: 30),
-                    
+
                     // Sign In Link
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -586,7 +598,8 @@ class _SignupScreenState extends State<SignupScreen> {
                         GestureDetector(
                           onTap: _navigateToSignIn,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             child: Text(
                               'Sign In',
                               style: GoogleFonts.lato(
@@ -599,13 +612,13 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 30),
                   ],
                 ),
               ),
             ),
-            
+
             // Loading Overlay
             if (_isLoading)
               Container(
@@ -751,10 +764,12 @@ class _SignupScreenState extends State<SignupScreen> {
             color: Colors.grey.shade400,
             fontSize: 15,
           ),
-          prefixIcon: Icon(prefixIcon, color: AppTheme.primaryDarkBlue, size: 22),
+          prefixIcon:
+              Icon(prefixIcon, color: AppTheme.primaryDarkBlue, size: 22),
           suffixIcon: suffixIcon,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
       ),
     );
@@ -799,7 +814,7 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
     setState(() {
       _resendTimer = 30;
     });
-    
+
     Future.doWhile(() async {
       await Future.delayed(const Duration(seconds: 1));
       if (mounted) {
@@ -817,15 +832,16 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
     setState(() {
       _isLoading = true;
     });
-    
-    _generatedOtp = (100000 + DateTime.now().millisecondsSinceEpoch % 900000).toString();
-    
+
+    _generatedOtp =
+        (100000 + DateTime.now().millisecondsSinceEpoch % 900000).toString();
+
     Future.delayed(const Duration(seconds: 1), () {
       setState(() {
         _isLoading = false;
         _otpSent = true;
       });
-      
+
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -862,7 +878,7 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
           ],
         ),
       );
-      
+
       _startResendTimer();
     });
   }
@@ -882,7 +898,7 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
       );
       return;
     }
-    
+
     if (_otpController.text != _generatedOtp) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -892,24 +908,24 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
       );
       return;
     }
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     await Future.delayed(const Duration(seconds: 1));
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('business_name', widget.businessName);
     await prefs.setString('user_phone', widget.mobileNumber);
     await prefs.setBool('is_logged_in', true);
     await prefs.setString('current_user_name', widget.businessName);
     await prefs.setString('login_method', 'mobile');
-    
+
     setState(() {
       _isLoading = false;
     });
-    
+
     if (mounted) {
       Navigator.pushAndRemoveUntil(
         context,
@@ -976,7 +992,7 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
               ),
             ),
             const SizedBox(height: 40),
-            
+
             // OTP Input
             Container(
               decoration: BoxDecoration(
@@ -997,13 +1013,14 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
                   ),
                   border: InputBorder.none,
                   counterText: '',
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1016,12 +1033,12 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
                 TextButton(
                   onPressed: _resendTimer > 0 ? null : _resendOtp,
                   child: Text(
-                    _resendTimer > 0 
+                    _resendTimer > 0
                         ? 'Resend OTP (${_resendTimer}s)'
                         : 'Resend OTP',
                     style: GoogleFonts.lato(
-                      color: _resendTimer > 0 
-                          ? Colors.grey 
+                      color: _resendTimer > 0
+                          ? Colors.grey
                           : AppTheme.primaryDarkBlue,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1029,9 +1046,9 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 40),
-            
+
             SizedBox(
               width: double.infinity,
               height: 55,
@@ -1056,7 +1073,6 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
           ],
         ),
       ),
-      
     );
   }
 }

@@ -22,30 +22,35 @@ class BusinessSetupScreen extends StatefulWidget {
 class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
   final TextEditingController _businessNameController = TextEditingController();
   final TextEditingController _gstController = TextEditingController();
-  final TextEditingController _otherBusinessTypeController = TextEditingController();
-  final TextEditingController _otherCustomerBaseController = TextEditingController();
-  final TextEditingController _otherInvoicePreferenceController = TextEditingController();
-  final TextEditingController _otherProductCategoryController = TextEditingController();
-  final TextEditingController _otherBusinessAgeController = TextEditingController();
-  
+  final TextEditingController _otherBusinessTypeController =
+      TextEditingController();
+  final TextEditingController _otherCustomerBaseController =
+      TextEditingController();
+  final TextEditingController _otherInvoicePreferenceController =
+      TextEditingController();
+  final TextEditingController _otherProductCategoryController =
+      TextEditingController();
+  final TextEditingController _otherBusinessAgeController =
+      TextEditingController();
+
   bool _isLoading = false;
   bool _needGST = false;
   int _currentScreenIndex = 0;
-  
+
   // Curious questions answers
   String _selectedBusinessType = '';
   String _selectedCustomerBase = '';
   String _selectedInvoicePreference = '';
   String _selectedProductCategory = '';
   String _selectedBusinessAge = '';
-  
+
   // Other options visibility
   bool _showOtherBusinessType = false;
   bool _showOtherCustomerBase = false;
   bool _showOtherInvoicePreference = false;
   bool _showOtherProductCategory = false;
   bool _showOtherBusinessAge = false;
-  
+
   final List<String> _businessTypes = [
     'Retail Store',
     'Wholesale Business',
@@ -55,7 +60,7 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
     'Restaurant/Cafe',
     'Other',
   ];
-  
+
   final List<String> _customerBases = [
     'Local Customers',
     'Within State',
@@ -63,14 +68,14 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
     'International',
     'Other',
   ];
-  
+
   final List<String> _invoicePreferences = [
     'Digital (Email/WhatsApp)',
     'Physical Print',
     'Both',
     'Other',
   ];
-  
+
   final List<String> _productCategories = [
     'Electronics',
     'Clothing & Fashion',
@@ -79,7 +84,7 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
     'Health & Beauty',
     'Other Products',
   ];
-  
+
   final List<String> _businessAges = [
     'Just Started (0-6 months)',
     'Growing (6-12 months)',
@@ -163,7 +168,7 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
         });
         break;
     }
-    
+
     // Move to next screen
     _nextScreen();
   }
@@ -252,59 +257,70 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
     setState(() {
       _isLoading = true;
     });
-    
+
     await Future.delayed(const Duration(seconds: 1));
-    
+
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('business_name', _businessNameController.text.isNotEmpty 
-        ? _businessNameController.text 
-        : widget.businessName);
+    await prefs.setString(
+        'business_name',
+        _businessNameController.text.isNotEmpty
+            ? _businessNameController.text
+            : widget.businessName);
     await prefs.setBool('has_gst', _needGST);
     if (_needGST && _gstController.text.isNotEmpty) {
       await prefs.setString('gst_number', _gstController.text);
     }
-    
+
     // Save business type with "Other" value if applicable
     String businessType = _selectedBusinessType;
-    if (_showOtherBusinessType && _otherBusinessTypeController.text.isNotEmpty) {
+    if (_showOtherBusinessType &&
+        _otherBusinessTypeController.text.isNotEmpty) {
       businessType = _otherBusinessTypeController.text;
     }
-    await prefs.setString('business_type', businessType.isEmpty ? 'Not specified' : businessType);
-    
+    await prefs.setString(
+        'business_type', businessType.isEmpty ? 'Not specified' : businessType);
+
     // Save customer base with "Other" value if applicable
     String customerBase = _selectedCustomerBase;
-    if (_showOtherCustomerBase && _otherCustomerBaseController.text.isNotEmpty) {
+    if (_showOtherCustomerBase &&
+        _otherCustomerBaseController.text.isNotEmpty) {
       customerBase = _otherCustomerBaseController.text;
     }
-    await prefs.setString('customer_base', customerBase.isEmpty ? 'Not specified' : customerBase);
-    
+    await prefs.setString(
+        'customer_base', customerBase.isEmpty ? 'Not specified' : customerBase);
+
     // Save invoice preference with "Other" value if applicable
     String invoicePreference = _selectedInvoicePreference;
-    if (_showOtherInvoicePreference && _otherInvoicePreferenceController.text.isNotEmpty) {
+    if (_showOtherInvoicePreference &&
+        _otherInvoicePreferenceController.text.isNotEmpty) {
       invoicePreference = _otherInvoicePreferenceController.text;
     }
-    await prefs.setString('invoice_preference', invoicePreference.isEmpty ? 'Not specified' : invoicePreference);
-    
+    await prefs.setString('invoice_preference',
+        invoicePreference.isEmpty ? 'Not specified' : invoicePreference);
+
     // Save product category with "Other" value if applicable
     String productCategory = _selectedProductCategory;
-    if (_showOtherProductCategory && _otherProductCategoryController.text.isNotEmpty) {
+    if (_showOtherProductCategory &&
+        _otherProductCategoryController.text.isNotEmpty) {
       productCategory = _otherProductCategoryController.text;
     }
-    await prefs.setString('product_category', productCategory.isEmpty ? 'Not specified' : productCategory);
-    
+    await prefs.setString('product_category',
+        productCategory.isEmpty ? 'Not specified' : productCategory);
+
     // Save business age with "Other" value if applicable
     String businessAge = _selectedBusinessAge;
     if (_showOtherBusinessAge && _otherBusinessAgeController.text.isNotEmpty) {
       businessAge = _otherBusinessAgeController.text;
     }
-    await prefs.setString('business_age', businessAge.isEmpty ? 'Not specified' : businessAge);
-    
+    await prefs.setString(
+        'business_age', businessAge.isEmpty ? 'Not specified' : businessAge);
+
     await prefs.setBool('business_setup_completed', true);
-    
+
     setState(() {
       _isLoading = false;
     });
-    
+
     if (mounted) {
       Navigator.pushAndRemoveUntil(
         context,
@@ -359,7 +375,7 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    
+
                     // Progress Indicator
                     Row(
                       children: List.generate(7, (index) {
@@ -369,8 +385,8 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
                             height: 4,
                             margin: const EdgeInsets.symmetric(horizontal: 2),
                             decoration: BoxDecoration(
-                              color: isActive 
-                                  ? AppTheme.primaryDarkBlue 
+                              color: isActive
+                                  ? AppTheme.primaryDarkBlue
                                   : Colors.grey.shade300,
                               borderRadius: BorderRadius.circular(2),
                             ),
@@ -402,9 +418,9 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 30),
-              
+
               // Screen Content
               Expanded(
                 child: SingleChildScrollView(
@@ -412,7 +428,7 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
                   child: _buildCurrentScreen(),
                 ),
               ),
-              
+
               // Next and Skip Buttons
               Container(
                 padding: const EdgeInsets.all(24),
@@ -452,10 +468,10 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
                           ),
                         ),
                       ),
-                    
+
                     if (_currentScreenIndex >= 2 && _currentScreenIndex <= 6)
                       const SizedBox(width: 12),
-                    
+
                     // Continue Button
                     Expanded(
                       child: ElevatedButton(
@@ -470,7 +486,9 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
                         child: Text(
-                          _currentScreenIndex == 6 ? 'Complete Setup' : 'Continue',
+                          _currentScreenIndex == 6
+                              ? 'Complete Setup'
+                              : 'Continue',
                           style: GoogleFonts.lato(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -483,7 +501,6 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
               ),
             ],
           ),
-          
           if (_isLoading)
             Container(
               color: Colors.black.withOpacity(0.5),
@@ -589,7 +606,7 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
           child: Container(
             width: 100,
             height: 100,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppTheme.lightBlueBg,
               shape: BoxShape.circle,
             ),
@@ -638,8 +655,10 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
               hintText: 'Enter your Business Name',
               hintStyle: GoogleFonts.lato(color: Colors.grey.shade400),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-              prefixIcon: const Icon(Icons.business_outlined, color: AppTheme.primaryDarkBlue),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+              prefixIcon: const Icon(Icons.business_outlined,
+                  color: AppTheme.primaryDarkBlue),
             ),
             style: GoogleFonts.lato(fontSize: 16),
           ),
@@ -656,7 +675,7 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
           child: Container(
             width: 100,
             height: 100,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppTheme.lightBlueBg,
               shape: BoxShape.circle,
             ),
@@ -731,8 +750,10 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
                 hintText: 'Enter GST Number (Optional)',
                 hintStyle: GoogleFonts.lato(color: Colors.grey.shade400),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                prefixIcon: const Icon(Icons.numbers, color: AppTheme.primaryDarkBlue),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                prefixIcon:
+                    const Icon(Icons.numbers, color: AppTheme.primaryDarkBlue),
               ),
             ),
           ),
@@ -757,7 +778,7 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
           child: Container(
             width: 100,
             height: 100,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppTheme.lightBlueBg,
               shape: BoxShape.circle,
             ),
@@ -796,8 +817,7 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
               onTap: () => onChanged(option),
             ),
           );
-        }).toList(),
-        
+        }),
         if (showOther) ...[
           const SizedBox(height: 16),
           Container(
@@ -813,8 +833,10 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
                 hintText: 'Please specify',
                 hintStyle: GoogleFonts.lato(color: Colors.grey.shade400),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                prefixIcon: Icon(Icons.edit_note, color: AppTheme.primaryDarkBlue),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                prefixIcon: const Icon(Icons.edit_note,
+                    color: AppTheme.primaryDarkBlue),
               ),
               style: GoogleFonts.lato(fontSize: 16),
             ),
@@ -894,7 +916,9 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
         child: Row(
           children: [
             Icon(
-              isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              isSelected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
               color: isSelected ? Colors.white : AppTheme.subtitleGray,
               size: 24,
             ),

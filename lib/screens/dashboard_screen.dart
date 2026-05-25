@@ -5,8 +5,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import '../theme/app_theme.dart';
 import 'create_invoice_screen.dart';
+import 'customer_screen.dart';
+import 'bills.dart';
 import 'invoice.dart';
 import 'signin_screen.dart';
+import 'item_screen.dart';
+import 'hsn_sac_management_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -23,20 +27,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? profileImagePath;
   final TextEditingController _searchController = TextEditingController();
   int _selectedBottomNavIndex = 0;
-  
+
   // Dropdown states
   bool _isItemExpanded = false;
   bool _isPurchaseExpanded = false;
   bool _isSalesExpanded = false;
   bool _isAccountExpanded = false;
-  
+
   final List<Map<String, dynamic>> alerts = [
-    {'title': 'Pay Bills', 'amount': '₹2,000', 'message': 'Due in 2 days', 'icon': Icons.payment, 'color': const Color(0xFFF59E0B)},
-    {'title': 'Outstanding Dues', 'amount': '₹12,000', 'message': 'Due in 10 days', 'icon': Icons.warning_amber, 'color': const Color(0xFFEF4444)},
-    {'title': 'Bill Generated', 'amount': '₹4,000', 'message': 'Pay by 30 June', 'icon': Icons.receipt, 'color': const Color(0xFF3B82F6)},
-    {'title': 'Upcoming Due', 'amount': '₹3,000', 'message': 'Due in 5 days', 'icon': Icons.event, 'color': const Color(0xFF8B5CF6)},
-    {'title': 'Tax Payment', 'amount': '₹5,000', 'message': 'Due in 15 days', 'icon': Icons.request_quote, 'color': const Color(0xFF14B8A6)},
-    {'title': 'Invoice Pending', 'amount': '₹8,000', 'message': 'Overdue 3 days', 'icon': Icons.receipt_long, 'color': const Color(0xFFEC4899)},
+    {
+      'title': 'Pay Bills',
+      'amount': '₹2,000',
+      'message': 'Due in 2 days',
+      'icon': Icons.payment,
+      'color': const Color(0xFFF59E0B)
+    },
+    {
+      'title': 'Outstanding Dues',
+      'amount': '₹12,000',
+      'message': 'Due in 10 days',
+      'icon': Icons.warning_amber,
+      'color': const Color(0xFFEF4444)
+    },
+    {
+      'title': 'Bill Generated',
+      'amount': '₹4,000',
+      'message': 'Pay by 30 June',
+      'icon': Icons.receipt,
+      'color': const Color(0xFF3B82F6)
+    },
+    {
+      'title': 'Upcoming Due',
+      'amount': '₹3,000',
+      'message': 'Due in 5 days',
+      'icon': Icons.event,
+      'color': const Color(0xFF8B5CF6)
+    },
+    {
+      'title': 'Tax Payment',
+      'amount': '₹5,000',
+      'message': 'Due in 15 days',
+      'icon': Icons.request_quote,
+      'color': const Color(0xFF14B8A6)
+    },
+    {
+      'title': 'Invoice Pending',
+      'amount': '₹8,000',
+      'message': 'Overdue 3 days',
+      'icon': Icons.receipt_long,
+      'color': const Color(0xFFEC4899)
+    },
   ];
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -58,7 +98,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      userName = prefs.getString('current_user_name') ?? prefs.getString('user_name') ?? 'John';
+      userName = prefs.getString('current_user_name') ??
+          prefs.getString('user_name') ??
+          'John';
       userEmail = prefs.getString('current_user_email') ?? 'john@business.com';
       userBusiness = prefs.getString('business_name') ?? 'Business';
     });
@@ -104,7 +146,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 20),
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: AppTheme.primaryDarkBlue),
+              leading:
+                  const Icon(Icons.camera_alt, color: AppTheme.primaryDarkBlue),
               title: const Text('Take Photo'),
               onTap: () async {
                 Navigator.pop(context);
@@ -117,7 +160,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library, color: AppTheme.primaryDarkBlue),
+              leading: const Icon(Icons.photo_library,
+                  color: AppTheme.primaryDarkBlue),
               title: const Text('Choose from Gallery'),
               onTap: () async {
                 Navigator.pop(context);
@@ -132,7 +176,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             if (profileImagePath != null)
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Remove Photo', style: TextStyle(color: Colors.red)),
+                title: const Text('Remove Photo',
+                    style: TextStyle(color: Colors.red)),
                 onTap: () async {
                   Navigator.pop(context);
                   await _saveProfileImage(null);
@@ -148,7 +193,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('is_logged_in', false);
-    
+
     if (mounted) {
       Navigator.pushAndRemoveUntil(
         context,
@@ -166,29 +211,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
           context,
           MaterialPageRoute(builder: (context) => const CreateInvoiceScreen()),
         ).then((_) {
-          // Refresh data when returning from invoice screen
           _loadUserData();
         });
         break;
       case 'New Bill':
       case 'Bill':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Bill creation coming soon'),
-            duration: Duration(seconds: 1),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CreateBillScreen()),
+        ).then((_) {
+          _loadUserData();
+        });
         break;
       case 'Add Customer':
       case 'Customer':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Customer creation coming soon'),
-            duration: Duration(seconds: 1),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CustomerScreen()),
+        ).then((_) {
+          _loadUserData();
+        });
         break;
       case 'Record Payment':
       case 'Payment':
@@ -213,7 +255,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _navigateToScreen(String screenName) {
     Navigator.pop(context); // Close drawer
-    
+
     switch (screenName) {
       case 'Create Invoice':
         Navigator.push(
@@ -235,6 +277,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
         break;
       case 'Customers':
+      case 'Customer':
         setState(() {
           _selectedBottomNavIndex = 1;
         });
@@ -243,6 +286,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         setState(() {
           _selectedBottomNavIndex = 2;
         });
+        break;
+      case 'Bills':
+      case 'Bill':
+      case 'Purchase Bill':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const BillListScreen()),
+        );
         break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(
@@ -289,7 +340,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.person, size: 14, color: AppTheme.primaryDarkBlue),
+                    const Icon(Icons.person,
+                        size: 14, color: AppTheme.primaryDarkBlue),
                     const SizedBox(width: 4),
                     Text(
                       userName,
@@ -308,7 +360,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Stack(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.notifications_none, color: AppTheme.primaryDarkBlue),
+                  icon: const Icon(Icons.notifications_none,
+                      color: AppTheme.primaryDarkBlue),
                   onPressed: () {},
                 ),
                 Positioned(
@@ -364,10 +417,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           currentIndex: _selectedBottomNavIndex,
           onTap: (index) {
             if (index == 3) {
-              // Navigate to Invoice List Screen
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const InvoiceListScreen()),
+                MaterialPageRoute(
+                    builder: (context) => const InvoiceListScreen()),
+              );
+            } else if (index == 4) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const BillListScreen()),
               );
             } else {
               setState(() {
@@ -409,8 +467,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               label: 'Invoices',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.more_horiz, size: 22),
-              label: 'More',
+              icon: Icon(Icons.receipt_outlined, size: 22),
+              activeIcon: Icon(Icons.receipt, size: 22),
+              label: 'Bills',
             ),
           ],
           elevation: 0,
@@ -424,13 +483,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 0:
         return _buildDashboardContent();
       case 1:
-        return _buildCustomersScreen();
+        return const CustomerScreen();
       case 2:
-        return _buildItemsScreen();
+        return const ItemScreen();
       case 3:
-        return _buildInvoicesScreen();
+        return const InvoiceListScreen();
       case 4:
-        return _buildMoreScreen();
+        return const BillListScreen();
       default:
         return _buildDashboardContent();
     }
@@ -463,9 +522,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           fontSize: 14,
                           color: Colors.grey.shade400,
                         ),
-                        prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
+                        prefixIcon: const Icon(Icons.search,
+                            color: Colors.grey, size: 20),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
                       ),
                     ),
                   ),
@@ -476,7 +537,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     showModalBottomSheet(
                       context: context,
                       shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(20)),
                       ),
                       builder: (context) => _buildFinancialYearSheet(),
                     );
@@ -492,7 +554,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.calendar_today, size: 16, color: AppTheme.subtitleGray),
+                        const Icon(Icons.calendar_today,
+                            size: 16, color: AppTheme.subtitleGray),
                         const SizedBox(width: 8),
                         Text(
                           selectedFinancialYear,
@@ -503,7 +566,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                         const SizedBox(width: 4),
-                        const Icon(Icons.keyboard_arrow_down, color: Colors.grey, size: 18),
+                        const Icon(Icons.keyboard_arrow_down,
+                            color: Colors.grey, size: 18),
                       ],
                     ),
                   ),
@@ -511,9 +575,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Alerts Section - Scrollable horizontally
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -532,7 +596,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFEE2E2),
                         borderRadius: BorderRadius.circular(12),
@@ -559,13 +624,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       final alert = alerts[index];
                       return GestureDetector(
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('${alert['title']} tapped'),
-                              duration: const Duration(seconds: 1),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
+                          if (alert['title'] == 'Pay Bills' ||
+                              alert['title'] == 'Bill Generated') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const BillListScreen()),
+                            );
+                          } else if (alert['title'] == 'Invoice Pending') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const InvoiceListScreen()),
+                            );
+                          }
                         },
                         child: Container(
                           width: 180,
@@ -581,10 +654,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: (alert['color'] as Color).withOpacity(0.1),
+                                  color: (alert['color'] as Color)
+                                      .withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: Icon(alert['icon'], size: 18, color: alert['color']),
+                                child: Icon(alert['icon'],
+                                    size: 18, color: alert['color']),
                               ),
                               const SizedBox(width: 10),
                               Expanded(
@@ -629,9 +704,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Quick Action Cards
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -693,9 +768,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Financial Summary
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -735,9 +810,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Recent Activity
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -774,13 +849,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   '2 hours ago',
                   Icons.receipt_long,
                   const Color(0xFF4F46E5),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const InvoiceListScreen()),
+                    );
+                  },
                 ),
                 const SizedBox(height: 8),
                 _buildActivityCard(
-                  'Payment received',
+                  'Bill #BILL-001 created',
                   '5 hours ago',
-                  Icons.payment,
-                  const Color(0xFF10B981),
+                  Icons.receipt,
+                  const Color(0xFFEC4899),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const BillListScreen()),
+                    );
+                  },
                 ),
                 const SizedBox(height: 8),
                 _buildActivityCard(
@@ -788,121 +877,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   'Yesterday',
                   Icons.person_add,
                   const Color(0xFF8B5CF6),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const CustomerScreen()),
+                    );
+                  },
                 ),
               ],
             ),
           ),
-          
+
           const SizedBox(height: 80),
         ],
       ),
     );
   }
 
-  Widget _buildCustomersScreen() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.people_outline, size: 80, color: AppTheme.subtitleGray),
-          const SizedBox(height: 16),
-          Text(
-            'Customers',
-            style: GoogleFonts.lato(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.primaryDarkBlue,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Customer management coming soon',
-            style: GoogleFonts.lato(
-              fontSize: 14,
-              color: AppTheme.subtitleGray,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildItemsScreen() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.inventory_2_outlined, size: 80, color: AppTheme.subtitleGray),
-          const SizedBox(height: 16),
-          Text(
-            'Items',
-            style: GoogleFonts.lato(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.primaryDarkBlue,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Items management coming soon',
-            style: GoogleFonts.lato(
-              fontSize: 14,
-              color: AppTheme.subtitleGray,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildInvoicesScreen() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.receipt_long_outlined, size: 80, color: AppTheme.subtitleGray),
-          const SizedBox(height: 16),
-          Text(
-            'Invoices',
-            style: GoogleFonts.lato(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.primaryDarkBlue,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'All invoices will appear here',
-            style: GoogleFonts.lato(
-              fontSize: 14,
-              color: AppTheme.subtitleGray,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const InvoiceListScreen()),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryDarkBlue,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              'View All Invoices',
-              style: GoogleFonts.lato(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return const InvoiceListScreen();
   }
 
   Widget _buildMoreScreen() {
@@ -914,14 +908,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _buildMoreMenuItem(Icons.help_outline, 'Help & Support', () {}),
         _buildMoreMenuItem(Icons.info_outline, 'About', () {}),
         const Divider(),
-        _buildMoreMenuItem(Icons.logout, 'Logout', _logout, isDestructive: true),
+        _buildMoreMenuItem(Icons.receipt_outlined, 'Bills', () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const BillListScreen()),
+          );
+        }),
+        _buildMoreMenuItem(Icons.logout, 'Logout', _logout,
+            isDestructive: true),
       ],
     );
   }
 
-  Widget _buildMoreMenuItem(IconData icon, String title, VoidCallback onTap, {bool isDestructive = false}) {
+  Widget _buildMoreMenuItem(IconData icon, String title, VoidCallback onTap,
+      {bool isDestructive = false}) {
     return ListTile(
-      leading: Icon(icon, color: isDestructive ? Colors.red : AppTheme.primaryDarkBlue),
+      leading: Icon(icon,
+          color: isDestructive ? Colors.red : AppTheme.primaryDarkBlue),
       title: Text(
         title,
         style: GoogleFonts.lato(
@@ -1030,7 +1033,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     // Business Name Badge on the Right
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(20),
@@ -1038,11 +1042,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.business, size: 12, color: Colors.white),
+                          const Icon(Icons.business,
+                              size: 12, color: Colors.white),
                           const SizedBox(width: 4),
                           Text(
-                            userBusiness.length > 10 
-                                ? '${userBusiness.substring(0, 8)}...' 
+                            userBusiness.length > 10
+                                ? '${userBusiness.substring(0, 8)}...'
                                 : userBusiness,
                             style: GoogleFonts.lato(
                               fontSize: 10,
@@ -1058,9 +1063,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
-          
+
           const Divider(height: 1, thickness: 1, color: Color(0xFFE8EAED)),
-          
+
           // Menu Items - Will expand to fill space
           Expanded(
             child: ListView(
@@ -1068,7 +1073,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               physics: const BouncingScrollPhysics(),
               children: [
                 const SizedBox(height: 4),
-                
+
                 // Dashboard
                 _buildMenuItem(
                   icon: Icons.dashboard_outlined,
@@ -1080,7 +1085,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     });
                   },
                 ),
-                
+
                 // Items Dropdown
                 _buildDropdownMenuItem(
                   icon: Icons.inventory_2_outlined,
@@ -1093,11 +1098,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   },
                   children: [
                     _buildSubMenuItem('Item', () => _navigateToScreen('Item')),
-                    _buildSubMenuItem('HSN & SAC Code', () => _navigateToScreen('HSN & SAC Code')),
-                    _buildSubMenuItem('Categories', () => _navigateToScreen('Categories')),
+                    _buildSubMenuItem('HSN & SAC Code',
+                        () => _navigateToScreen('HSN & SAC Code')),
+                    _buildSubMenuItem(
+                        'Categories', () => _navigateToScreen('Categories')),
                   ],
                 ),
-                
+
                 // Purchase Dropdown
                 _buildDropdownMenuItem(
                   icon: Icons.shopping_cart_outlined,
@@ -1109,13 +1116,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     });
                   },
                   children: [
-                    _buildSubMenuItem('Supplier', () => _navigateToScreen('Supplier')),
-                    _buildSubMenuItem('Supplier Statement', () => _navigateToScreen('Supplier Statement')),
-                    _buildSubMenuItem('Purchase Order', () => _navigateToScreen('Purchase Order')),
-                    _buildSubMenuItem('Purchase Bill', () => _navigateToScreen('Purchase Bill')),
+                    _buildSubMenuItem(
+                        'Supplier', () => _navigateToScreen('Supplier')),
+                    _buildSubMenuItem('Supplier Statement',
+                        () => _navigateToScreen('Supplier Statement')),
+                    _buildSubMenuItem('Purchase Order',
+                        () => _navigateToScreen('Purchase Order')),
+                    _buildSubMenuItem('Purchase Bill',
+                        () => _navigateToScreen('Purchase Bill')),
                   ],
                 ),
-                
+
                 // Sales Dropdown
                 _buildDropdownMenuItem(
                   icon: Icons.trending_up_outlined,
@@ -1127,13 +1138,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     });
                   },
                   children: [
-                    _buildSubMenuItem('Customer', () => _navigateToScreen('Customer')),
-                    _buildSubMenuItem('Enquiry', () => _navigateToScreen('Enquiry')),
-                    _buildSubMenuItem('Estimate', () => _navigateToScreen('Estimate')),
-                    _buildSubMenuItem('Create Invoice', () => _navigateToScreen('Create Invoice')),
+                    _buildSubMenuItem(
+                        'Customer', () => _navigateToScreen('Customer')),
+                    _buildSubMenuItem(
+                        'Enquiry', () => _navigateToScreen('Enquiry')),
+                    _buildSubMenuItem(
+                        'Estimate', () => _navigateToScreen('Estimate')),
+                    _buildSubMenuItem('Create Invoice',
+                        () => _navigateToScreen('Create Invoice')),
                   ],
                 ),
-                
+
                 // Account Dropdown
                 _buildDropdownMenuItem(
                   icon: Icons.account_balance_outlined,
@@ -1145,16 +1160,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     });
                   },
                   children: [
-                    _buildSubMenuItem('Account Master', () => _navigateToScreen('Account Master')),
-                    _buildSubMenuItem('Journals', () => _navigateToScreen('Journals')),
-                    _buildSubMenuItem('Vouchers', () => _navigateToScreen('Vouchers')),
-                    _buildSubMenuItem('Bank Payments', () => _navigateToScreen('Bank Payments')),
-                    _buildSubMenuItem('General Ledger', () => _navigateToScreen('General Ledger')),
-                    _buildSubMenuItem('Trial Balance', () => _navigateToScreen('Trial Balance')),
-                    _buildSubMenuItem('Balance Sheets', () => _navigateToScreen('Balance Sheets')),
+                    _buildSubMenuItem('Account Master',
+                        () => _navigateToScreen('Account Master')),
+                    _buildSubMenuItem(
+                        'Journals', () => _navigateToScreen('Journals')),
+                    _buildSubMenuItem(
+                        'Vouchers', () => _navigateToScreen('Vouchers')),
+                    _buildSubMenuItem('Bank Payments',
+                        () => _navigateToScreen('Bank Payments')),
+                    _buildSubMenuItem('General Ledger',
+                        () => _navigateToScreen('General Ledger')),
+                    _buildSubMenuItem('Trial Balance',
+                        () => _navigateToScreen('Trial Balance')),
+                    _buildSubMenuItem('Balance Sheets',
+                        () => _navigateToScreen('Balance Sheets')),
                   ],
                 ),
-                
+
                 // Invoices Menu Item
                 _buildMenuItem(
                   icon: Icons.receipt_long_outlined,
@@ -1163,16 +1185,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.pop(context);
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const InvoiceListScreen()),
+                      MaterialPageRoute(
+                          builder: (context) => const InvoiceListScreen()),
                     );
                   },
                 ),
-                
+
+                // Bills Menu Item
+                _buildMenuItem(
+                  icon: Icons.receipt_outlined,
+                  title: 'Bills',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const BillListScreen()),
+                    );
+                  },
+                ),
+
                 const SizedBox(height: 8),
               ],
             ),
           ),
-          
+
           // Bottom Section with Settings and Logout
           Container(
             decoration: BoxDecoration(
@@ -1188,7 +1225,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   title: 'Settings',
                   onTap: () => _navigateToScreen('Settings'),
                 ),
-                
+
                 // Logout
                 _buildMenuItem(
                   icon: Icons.logout_outlined,
@@ -1197,7 +1234,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   titleColor: const Color(0xFFD93025),
                   onTap: _logout,
                 ),
-                
+
                 const SizedBox(height: 16),
               ],
             ),
@@ -1224,7 +1261,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: ListTile(
         leading: Icon(
           icon,
-          color: iconColor ?? (isActive ? AppTheme.primaryDarkBlue : AppTheme.subtitleGray),
+          color: iconColor ??
+              (isActive ? AppTheme.primaryDarkBlue : AppTheme.subtitleGray),
           size: 20,
         ),
         title: Text(
@@ -1232,7 +1270,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           style: GoogleFonts.lato(
             fontSize: 14,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            color: titleColor ?? (isActive ? AppTheme.primaryDarkBlue : Colors.black87),
+            color: titleColor ??
+                (isActive ? AppTheme.primaryDarkBlue : Colors.black87),
           ),
         ),
         onTap: onTap,
@@ -1273,7 +1312,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: AppTheme.subtitleGray,
             ),
             onTap: onTap,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
             dense: true,
           ),
         ),
@@ -1306,8 +1346,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-  
-  Widget _buildActionCard(String title, IconData icon, Color color, String subtitle) {
+
+  Widget _buildActionCard(
+      String title, IconData icon, Color color, String subtitle) {
     return GestureDetector(
       onTap: () {
         _handleQuickAction(title);
@@ -1350,8 +1391,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-  
-  Widget _buildSummaryCard(String title, String amount, IconData icon, Color color) {
+
+  Widget _buildSummaryCard(
+      String title, String amount, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -1389,17 +1431,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-  
-  Widget _buildActivityCard(String title, String time, IconData icon, Color color) {
+
+  Widget _buildActivityCard(
+      String title, String time, IconData icon, Color color,
+      {VoidCallback? onTap}) {
     return GestureDetector(
-      onTap: () {
-        if (title.contains('Invoice')) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const InvoiceListScreen()),
-          );
-        }
-      },
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -1447,7 +1484,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-  
+
   void _showQuickActionSheet() {
     showModalBottomSheet(
       context: context,
@@ -1476,7 +1513,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Row(
@@ -1508,9 +1544,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
-            
             const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
-            
             Padding(
               padding: const EdgeInsets.all(16),
               child: GridView.builder(
@@ -1525,10 +1559,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 itemCount: 4,
                 itemBuilder: (context, index) {
                   final List<Map<String, dynamic>> actions = [
-                    {'icon': Icons.receipt_long, 'label': 'Invoice', 'color': const Color(0xFF4F46E5)},
-                    {'icon': Icons.receipt, 'label': 'Bill', 'color': const Color(0xFFEC4899)},
-                    {'icon': Icons.person_add, 'label': 'Customer', 'color': const Color(0xFF10B981)},
-                    {'icon': Icons.payment, 'label': 'Payment', 'color': const Color(0xFFF59E0B)},
+                    {
+                      'icon': Icons.receipt_long,
+                      'label': 'Invoice',
+                      'color': const Color(0xFF4F46E5)
+                    },
+                    {
+                      'icon': Icons.receipt,
+                      'label': 'Bill',
+                      'color': const Color(0xFFEC4899)
+                    },
+                    {
+                      'icon': Icons.person_add,
+                      'label': 'Customer',
+                      'color': const Color(0xFF10B981)
+                    },
+                    {
+                      'icon': Icons.payment,
+                      'label': 'Payment',
+                      'color': const Color(0xFFF59E0B)
+                    },
                   ];
                   final action = actions[index];
                   return GestureDetector(
@@ -1546,8 +1596,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Icon(
-                            action['icon'] as IconData, 
-                            color: action['color'] as Color, 
+                            action['icon'] as IconData,
+                            color: action['color'] as Color,
                             size: 24,
                           ),
                         ),
@@ -1567,14 +1617,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 },
               ),
             ),
-            
             const SizedBox(height: 16),
           ],
         ),
       ),
     );
   }
-  
+
   Widget _buildFinancialYearSheet() {
     List<String> financialYears = [
       'FY 2025-26',
@@ -1583,7 +1632,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'FY 2022-23',
       'FY 2021-22',
     ];
-    
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: const BoxDecoration(
@@ -1620,30 +1669,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Flexible(
             child: ListView(
               shrinkWrap: true,
-              children: financialYears.map((year) => ListTile(
-                leading: Icon(
-                  Icons.calendar_today,
-                  size: 20,
-                  color: selectedFinancialYear == year ? AppTheme.primaryDarkBlue : AppTheme.subtitleGray,
-                ),
-                title: Text(
-                  year,
-                  style: GoogleFonts.lato(
-                    fontSize: 14,
-                    fontWeight: selectedFinancialYear == year ? FontWeight.w600 : FontWeight.normal,
-                    color: selectedFinancialYear == year ? AppTheme.primaryDarkBlue : AppTheme.subtitleGray,
-                  ),
-                ),
-                trailing: selectedFinancialYear == year 
-                    ? Icon(Icons.check_circle, color: AppTheme.primaryDarkBlue, size: 20)
-                    : null,
-                onTap: () {
-                  setState(() {
-                    selectedFinancialYear = year;
-                  });
-                  Navigator.pop(context);
-                },
-              )).toList(),
+              children: financialYears
+                  .map((year) => ListTile(
+                        leading: Icon(
+                          Icons.calendar_today,
+                          size: 20,
+                          color: selectedFinancialYear == year
+                              ? AppTheme.primaryDarkBlue
+                              : AppTheme.subtitleGray,
+                        ),
+                        title: Text(
+                          year,
+                          style: GoogleFonts.lato(
+                            fontSize: 14,
+                            fontWeight: selectedFinancialYear == year
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                            color: selectedFinancialYear == year
+                                ? AppTheme.primaryDarkBlue
+                                : AppTheme.subtitleGray,
+                          ),
+                        ),
+                        trailing: selectedFinancialYear == year
+                            ? const Icon(Icons.check_circle,
+                                color: AppTheme.primaryDarkBlue, size: 20)
+                            : null,
+                        onTap: () {
+                          setState(() {
+                            selectedFinancialYear = year;
+                          });
+                          Navigator.pop(context);
+                        },
+                      ))
+                  .toList(),
             ),
           ),
           const SizedBox(height: 20),

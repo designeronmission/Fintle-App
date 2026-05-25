@@ -20,7 +20,7 @@ class _SigninScreenState extends State<SigninScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   bool _isPasswordVisible = false;
   bool _isLoading = false;
   bool _rememberMe = false;
@@ -44,7 +44,7 @@ class _SigninScreenState extends State<SigninScreen> {
     final prefs = await SharedPreferences.getInstance();
     final savedEmail = prefs.getString('saved_email');
     final rememberMe = prefs.getBool('remember_me') ?? false;
-    
+
     if (rememberMe && savedEmail != null) {
       setState(() {
         _rememberMe = true;
@@ -57,17 +57,17 @@ class _SigninScreenState extends State<SigninScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       final result = await _authService.signInWithEmail(
         _emailController.text.trim(),
         _passwordController.text,
       );
-      
+
       if (result.success && mounted) {
         // Save remember me preference
         final prefs = await SharedPreferences.getInstance();
@@ -78,14 +78,15 @@ class _SigninScreenState extends State<SigninScreen> {
           await prefs.remove('saved_email');
           await prefs.setBool('remember_me', false);
         }
-        
+
         // Check if business setup is completed
-        final isBusinessSetup = prefs.getBool('business_setup_completed') ?? false;
-        
+        final isBusinessSetup =
+            prefs.getBool('business_setup_completed') ?? false;
+
         setState(() {
           _isLoading = false;
         });
-        
+
         if (mounted) {
           if (isBusinessSetup) {
             Navigator.pushAndRemoveUntil(
@@ -134,18 +135,19 @@ class _SigninScreenState extends State<SigninScreen> {
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       final result = await _authService.signInWithGoogle();
-      
+
       if (result.success && mounted) {
         setState(() {
           _isLoading = false;
         });
-        
+
         final prefs = await SharedPreferences.getInstance();
-        final isBusinessSetup = prefs.getBool('business_setup_completed') ?? false;
-        
+        final isBusinessSetup =
+            prefs.getBool('business_setup_completed') ?? false;
+
         if (mounted) {
           if (isBusinessSetup) {
             Navigator.pushAndRemoveUntil(
@@ -239,7 +241,7 @@ class _SigninScreenState extends State<SigninScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 20),
-                    
+
                     // Back Button
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
@@ -256,9 +258,9 @@ class _SigninScreenState extends State<SigninScreen> {
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 40),
-                    
+
                     // Title
                     Text(
                       'Welcome Back!',
@@ -276,9 +278,9 @@ class _SigninScreenState extends State<SigninScreen> {
                         color: AppTheme.subtitleGray,
                       ),
                     ),
-                    
+
                     const SizedBox(height: 40),
-                    
+
                     // Sign In Form
                     Form(
                       key: _formKey,
@@ -294,15 +296,16 @@ class _SigninScreenState extends State<SigninScreen> {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your email';
                               }
-                              if (!value.contains('@') || !value.contains('.')) {
+                              if (!value.contains('@') ||
+                                  !value.contains('.')) {
                                 return 'Enter a valid email address';
                               }
                               return null;
                             },
                           ),
-                          
+
                           const SizedBox(height: 16),
-                          
+
                           // Password Field
                           _buildTextField(
                             controller: _passwordController,
@@ -311,7 +314,9 @@ class _SigninScreenState extends State<SigninScreen> {
                             obscureText: !_isPasswordVisible,
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                                _isPasswordVisible
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
                                 color: AppTheme.subtitleGray,
                               ),
                               onPressed: () {
@@ -333,9 +338,9 @@ class _SigninScreenState extends State<SigninScreen> {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 12),
-                    
+
                     // Remember Me & Forgot Password
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -374,9 +379,9 @@ class _SigninScreenState extends State<SigninScreen> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 30),
-                    
+
                     // Sign In Button
                     SizedBox(
                       width: double.infinity,
@@ -400,9 +405,9 @@ class _SigninScreenState extends State<SigninScreen> {
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Phone Login Button
                     SizedBox(
                       width: double.infinity,
@@ -411,7 +416,8 @@ class _SigninScreenState extends State<SigninScreen> {
                         onPressed: _navigateToPhoneLogin,
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppTheme.primaryDarkBlue,
-                          side: BorderSide(color: AppTheme.primaryDarkBlue),
+                          side:
+                              const BorderSide(color: AppTheme.primaryDarkBlue),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -425,19 +431,19 @@ class _SigninScreenState extends State<SigninScreen> {
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 30),
-                    
+
                     // Or Continue With divider
                     _buildDivider(),
-                    
+
                     const SizedBox(height: 30),
-                    
+
                     // Google Sign In Button
                     _buildGoogleButton(),
-                    
+
                     const SizedBox(height: 30),
-                    
+
                     // Sign Up Link
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -452,7 +458,8 @@ class _SigninScreenState extends State<SigninScreen> {
                         GestureDetector(
                           onTap: _navigateToSignUp,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             child: Text(
                               'Sign Up',
                               style: GoogleFonts.lato(
@@ -465,13 +472,13 @@ class _SigninScreenState extends State<SigninScreen> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 30),
                   ],
                 ),
               ),
             ),
-            
+
             // Loading Overlay
             if (_isLoading)
               Container(
@@ -549,10 +556,12 @@ class _SigninScreenState extends State<SigninScreen> {
             color: Colors.grey.shade400,
             fontSize: 15,
           ),
-          prefixIcon: Icon(prefixIcon, color: AppTheme.primaryDarkBlue, size: 22),
+          prefixIcon:
+              Icon(prefixIcon, color: AppTheme.primaryDarkBlue, size: 22),
           suffixIcon: suffixIcon,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
       ),
     );
@@ -617,7 +626,7 @@ class _SigninScreenState extends State<SigninScreen> {
               ),
             ],
           ),
-                 child: Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Google Logo Image instead of Icon
@@ -685,7 +694,8 @@ class _ForgotPasswordSheetState extends State<ForgotPasswordSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Center(
-            child: Icon(Icons.lock_reset, size: 50, color: AppTheme.primaryDarkBlue),
+            child: Icon(Icons.lock_reset,
+                size: 50, color: AppTheme.primaryDarkBlue),
           ),
           const SizedBox(height: 16),
           Text(
@@ -747,7 +757,7 @@ class _ForgotPasswordSheetState extends State<ForgotPasswordSheet> {
               child: const Text('Send Reset Link'),
             ),
           ),
-          const SizedBox(height: 16), 
+          const SizedBox(height: 16),
         ],
       ),
     );

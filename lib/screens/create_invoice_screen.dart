@@ -14,81 +14,144 @@ class CreateInvoiceScreen extends StatefulWidget {
 class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
   final _formKey = GlobalKey<FormState>();
   final ScrollController _scrollController = ScrollController();
-  
+
   // Flow state
   int _currentSection = 0;
-  
+
   // Company Details
   String userBusiness = "Business";
   String userEmail = "business@example.com";
-  
+
   // Customer
-  TextEditingController _customerSearchController = TextEditingController();
+  final TextEditingController _customerSearchController =
+      TextEditingController();
   String? _selectedCustomer;
   bool _showNewCustomerForm = false;
-  TextEditingController _customerNameController = TextEditingController();
-  TextEditingController _customerEmailController = TextEditingController();
-  TextEditingController _customerPhoneController = TextEditingController();
-  TextEditingController _customerAddressController = TextEditingController();
-  TextEditingController _customerGstController = TextEditingController();
-  
+  final TextEditingController _customerNameController = TextEditingController();
+  final TextEditingController _customerEmailController =
+      TextEditingController();
+  final TextEditingController _customerPhoneController =
+      TextEditingController();
+  final TextEditingController _customerAddressController =
+      TextEditingController();
+  final TextEditingController _customerGstController = TextEditingController();
+
   // Invoice Details
   DateTime? _issueDate;
   DateTime? _dueDate;
   String _selectedCurrency = 'INR';
-  TextEditingController _invoiceNumberController = TextEditingController();
-  TextEditingController _referenceController = TextEditingController();
-  
+  final TextEditingController _invoiceNumberController =
+      TextEditingController();
+  final TextEditingController _referenceController = TextEditingController();
+
   // Items
-  List<InvoiceItem> _items = [];
+  final List<InvoiceItem> _items = [];
   String? _selectedExistingItem;
   bool _showNewItemForm = false;
   int _editingItemIndex = -1;
-  
+
   // Item Form Controllers
-  TextEditingController _itemDescController = TextEditingController();
-  TextEditingController _itemCodeController = TextEditingController();
-  TextEditingController _itemPriceController = TextEditingController();
-  TextEditingController _itemQtyController = TextEditingController();
+  final TextEditingController _itemDescController = TextEditingController();
+  final TextEditingController _itemCodeController = TextEditingController();
+  final TextEditingController _itemPriceController = TextEditingController();
+  final TextEditingController _itemQtyController = TextEditingController();
   String _selectedItemUnit = 'PCS';
   double _itemTaxPercentage = 0.0;
   String _itemCurrency = 'INR';
-  
-  final List<String> _unitOptions = ['PCS', 'Hour', 'Day', 'Month', 'Year', 'KG', 'Ltr', 'Box', 'Set', 'Service'];
-  
+
+  final List<String> _unitOptions = [
+    'PCS',
+    'Hour',
+    'Day',
+    'Month',
+    'Year',
+    'KG',
+    'Ltr',
+    'Box',
+    'Set',
+    'Service'
+  ];
+
   final List<Map<String, String>> _customers = [
-    {'name': 'ABC Corporation', 'email': 'abc@example.com', 'phone': '+91 9876543210', 'gst': 'GST: 29AAACB1234E1Z5'},
-    {'name': 'XYZ Enterprises', 'email': 'xyz@example.com', 'phone': '+91 9876543211', 'gst': 'GST: 27BBBCD5678E2Z8'},
-    {'name': 'Tech Solutions Ltd', 'email': 'tech@example.com', 'phone': '+91 9876543212', 'gst': 'GST: 24CCCDE9012E3Z1'},
+    {
+      'name': 'ABC Corporation',
+      'email': 'abc@example.com',
+      'phone': '+91 9876543210',
+      'gst': 'GST: 29AAACB1234E1Z5'
+    },
+    {
+      'name': 'XYZ Enterprises',
+      'email': 'xyz@example.com',
+      'phone': '+91 9876543211',
+      'gst': 'GST: 27BBBCD5678E2Z8'
+    },
+    {
+      'name': 'Tech Solutions Ltd',
+      'email': 'tech@example.com',
+      'phone': '+91 9876543212',
+      'gst': 'GST: 24CCCDE9012E3Z1'
+    },
   ];
-  
+
   final List<Map<String, dynamic>> _existingItems = [
-    {'name': 'Web Design Service', 'code': 'WEB01', 'price': 2500.0, 'unit': 'Hour', 'tax': 12.0},
-    {'name': 'Cloud Hosting', 'code': 'CLD99', 'price': 4800.0, 'unit': 'Year', 'tax': 5.0},
-    {'name': 'Mobile App Development', 'code': 'MOB03', 'price': 15000.0, 'unit': 'Project', 'tax': 18.0},
-    {'name': 'SEO Package', 'code': 'SEO10', 'price': 8000.0, 'unit': 'Month', 'tax': 18.0},
-    {'name': 'Consulting Service', 'code': 'CON05', 'price': 3000.0, 'unit': 'Hour', 'tax': 18.0},
+    {
+      'name': 'Web Design Service',
+      'code': 'WEB01',
+      'price': 2500.0,
+      'unit': 'Hour',
+      'tax': 12.0
+    },
+    {
+      'name': 'Cloud Hosting',
+      'code': 'CLD99',
+      'price': 4800.0,
+      'unit': 'Year',
+      'tax': 5.0
+    },
+    {
+      'name': 'Mobile App Development',
+      'code': 'MOB03',
+      'price': 15000.0,
+      'unit': 'Project',
+      'tax': 18.0
+    },
+    {
+      'name': 'SEO Package',
+      'code': 'SEO10',
+      'price': 8000.0,
+      'unit': 'Month',
+      'tax': 18.0
+    },
+    {
+      'name': 'Consulting Service',
+      'code': 'CON05',
+      'price': 3000.0,
+      'unit': 'Hour',
+      'tax': 18.0
+    },
   ];
-  
+
   final List<String> _currencies = ['INR', 'USD', 'EUR', 'GBP', 'AED'];
   final List<double> _taxOptions = [0, 5, 12, 18, 28];
-  
+
   double _shippingCharge = 0.0;
   double _discount = 0.0;
-  TextEditingController _shippingController = TextEditingController();
-  TextEditingController _discountController = TextEditingController();
-  TextEditingController _notesController = TextEditingController(text: 'Thanks for your business.');
+  final TextEditingController _shippingController = TextEditingController();
+  final TextEditingController _discountController = TextEditingController();
+  final TextEditingController _notesController =
+      TextEditingController(text: 'Thanks for your business.');
 
   @override
   void initState() {
     super.initState();
     _loadCompanyDetails();
-    _invoiceNumberController.text = 'INV-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+    _invoiceNumberController.text =
+        'INV-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
     _itemQtyController.text = '1';
     _issueDate = DateTime.now();
     _dueDate = DateTime.now().add(const Duration(days: 7));
   }
-  
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -114,7 +177,8 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       userBusiness = prefs.getString('business_name') ?? 'Business';
-      userEmail = prefs.getString('current_user_email') ?? 'business@example.com';
+      userEmail =
+          prefs.getString('current_user_email') ?? 'business@example.com';
     });
   }
 
@@ -130,9 +194,14 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     });
   }
 
-  double _calculateSubtotal() => _items.fold(0.0, (sum, item) => sum + (item.price * item.quantity));
-  double _calculateTax() => _items.fold(0.0, (sum, item) => sum + (item.price * item.quantity * item.taxPercentage / 100));
-  double _calculateTotal() => _calculateSubtotal() + _calculateTax() + _shippingCharge - _discount;
+  double _calculateSubtotal() =>
+      _items.fold(0.0, (sum, item) => sum + (item.price * item.quantity));
+  double _calculateTax() => _items.fold(
+      0.0,
+      (sum, item) =>
+          sum + (item.price * item.quantity * item.taxPercentage / 100));
+  double _calculateTotal() =>
+      _calculateSubtotal() + _calculateTax() + _shippingCharge - _discount;
 
   void _clearItemForm() {
     _itemDescController.clear();
@@ -159,7 +228,8 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
   }
 
   void _saveItem() {
-    if (_itemDescController.text.isNotEmpty && _itemPriceController.text.isNotEmpty) {
+    if (_itemDescController.text.isNotEmpty &&
+        _itemPriceController.text.isNotEmpty) {
       final newItem = InvoiceItem(
         description: _itemDescController.text,
         code: _itemCodeController.text,
@@ -169,7 +239,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
         taxPercentage: _itemTaxPercentage,
         currency: _itemCurrency,
       );
-      
+
       setState(() {
         if (_editingItemIndex >= 0) {
           _items[_editingItemIndex] = newItem;
@@ -205,8 +275,11 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
           icon: const Icon(Icons.arrow_back, color: AppTheme.primaryDarkBlue),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Create Invoice', 
-          style: GoogleFonts.lato(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.primaryDarkBlue)),
+        title: Text('Create Invoice',
+            style: GoogleFonts.lato(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primaryDarkBlue)),
         centerTitle: true,
       ),
       body: Column(
@@ -261,20 +334,26 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     side: BorderSide(color: Colors.grey.shade300),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: Text('Back', 
-                    style: GoogleFonts.lato(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.subtitleGray)),
+                  child: Text('Back',
+                      style: GoogleFonts.lato(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.subtitleGray)),
                 ),
               ),
-            if (_currentSection > 0 && _currentSection < 2) const SizedBox(width: 12),
-            
+            if (_currentSection > 0 && _currentSection < 2)
+              const SizedBox(width: 12),
             if (_currentSection == 0)
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
                   onPressed: () {
-                    if (_selectedCustomer != null || (_showNewCustomerForm && _customerNameController.text.isNotEmpty)) {
+                    if (_selectedCustomer != null ||
+                        (_showNewCustomerForm &&
+                            _customerNameController.text.isNotEmpty)) {
                       setState(() => _currentSection = 1);
                       _scrollToBottom();
                     } else {
@@ -284,21 +363,25 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryDarkBlue,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Continue', 
-                        style: GoogleFonts.lato(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white)),
+                      Text('Continue',
+                          style: GoogleFonts.lato(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white)),
                       const SizedBox(width: 8),
-                      const Icon(Icons.arrow_forward, size: 18, color: Colors.white),
+                      const Icon(Icons.arrow_forward,
+                          size: 18, color: Colors.white),
                     ],
                   ),
                 ),
               ),
-            
             if (_currentSection == 1)
               Expanded(
                 flex: 2,
@@ -310,21 +393,25 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryDarkBlue,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Add Items', 
-                        style: GoogleFonts.lato(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white)),
+                      Text('Add Items',
+                          style: GoogleFonts.lato(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white)),
                       const SizedBox(width: 8),
-                      const Icon(Icons.add_shopping_cart, size: 18, color: Colors.white),
+                      const Icon(Icons.add_shopping_cart,
+                          size: 18, color: Colors.white),
                     ],
                   ),
                 ),
               ),
-            
             if (_currentSection == 2) ...[
               Expanded(
                 child: OutlinedButton(
@@ -337,16 +424,21 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                   },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: BorderSide(color: AppTheme.primaryDarkBlue),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    side: const BorderSide(color: AppTheme.primaryDarkBlue),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.visibility_outlined, size: 18, color: AppTheme.primaryDarkBlue),
+                      const Icon(Icons.visibility_outlined,
+                          size: 18, color: AppTheme.primaryDarkBlue),
                       const SizedBox(width: 6),
-                      Text('Preview', 
-                        style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.primaryDarkBlue)),
+                      Text('Preview',
+                          style: GoogleFonts.lato(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.primaryDarkBlue)),
                     ],
                   ),
                 ),
@@ -359,14 +451,16 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                     if (_items.isEmpty) {
                       _showSnack('Please add at least one item before saving');
                     } else {
-                      _showSnack('Invoice saved successfully!', color: const Color(0xFF10B981));
+                      _showSnack('Invoice saved successfully!',
+                          color: const Color(0xFF10B981));
                       Navigator.pop(context);
                     }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryDarkBlue,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                   ),
                   child: Row(
@@ -374,8 +468,11 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                     children: [
                       const Icon(Icons.save, size: 18, color: Colors.white),
                       const SizedBox(width: 6),
-                      Text('Save & Continue', 
-                        style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+                      Text('Save & Continue',
+                          style: GoogleFonts.lato(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white)),
                     ],
                   ),
                 ),
@@ -389,7 +486,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
 
   Widget _buildCustomerSection() {
     final bool isCompleted = _currentSection > 0;
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -404,17 +501,19 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: isCompleted ? AppTheme.lightBlueBg : Colors.white,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
             ),
             child: Row(
-              children: [   
+              children: [
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryDarkBlue.withOpacity(0.1), 
+                    color: AppTheme.primaryDarkBlue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(Icons.person, color: AppTheme.primaryDarkBlue, size: 20),
+                  child: const Icon(Icons.person,
+                      color: AppTheme.primaryDarkBlue, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -422,24 +521,35 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('BILL TO', 
-                        style: GoogleFonts.lato(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.subtitleGray, letterSpacing: 0.5)),
+                      Text('BILL TO',
+                          style: GoogleFonts.lato(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.subtitleGray,
+                              letterSpacing: 0.5)),
                       if (isCompleted)
-                        Text(_selectedCustomer ?? _customerNameController.text, 
-                          style: GoogleFonts.lato(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black87),
-                          overflow: TextOverflow.ellipsis),
+                        Text(_selectedCustomer ?? _customerNameController.text,
+                            style: GoogleFonts.lato(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87),
+                            overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
                 if (isCompleted) ...[
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withOpacity(0.1), 
+                      color: const Color(0xFF10B981).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Text('Selected', 
-                      style: GoogleFonts.lato(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF10B981))),
+                    child: Text('Selected',
+                        style: GoogleFonts.lato(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF10B981))),
                   ),
                   const SizedBox(width: 8),
                   InkWell(
@@ -447,7 +557,8 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                       _currentSection = 0;
                       _selectedCustomer = null;
                     }),
-                    child: Icon(Icons.edit, size: 18, color: AppTheme.subtitleGray),
+                    child: const Icon(Icons.edit,
+                        size: 18, color: AppTheme.subtitleGray),
                   ),
                 ],
               ],
@@ -462,11 +573,14 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                   TextFormField(
                     controller: _customerSearchController,
                     onChanged: (_) => setState(() {}),
-                    decoration: _inputDeco('Search existing customers...', Icons.search),
+                    decoration: _inputDeco(
+                        'Search existing customers...', Icons.search),
                   ),
                   const SizedBox(height: 12),
                   ..._customers.map((c) {
-                    if (_customerSearchController.text.isNotEmpty && !c['name']!.toLowerCase().contains(_customerSearchController.text.toLowerCase())) {
+                    if (_customerSearchController.text.isNotEmpty &&
+                        !c['name']!.toLowerCase().contains(
+                            _customerSearchController.text.toLowerCase())) {
                       return const SizedBox.shrink();
                     }
                     return Padding(
@@ -484,10 +598,14 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: _selectedCustomer == c['name'] ? AppTheme.primaryDarkBlue.withOpacity(0.05) : const Color(0xFFF8F9FC),
+                            color: _selectedCustomer == c['name']
+                                ? AppTheme.primaryDarkBlue.withOpacity(0.05)
+                                : const Color(0xFFF8F9FC),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: _selectedCustomer == c['name'] ? AppTheme.primaryDarkBlue : Colors.grey.shade200, 
+                              color: _selectedCustomer == c['name']
+                                  ? AppTheme.primaryDarkBlue
+                                  : Colors.grey.shade200,
                               width: _selectedCustomer == c['name'] ? 1.5 : 1,
                             ),
                           ),
@@ -496,43 +614,56 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryDarkBlue.withOpacity(0.1), 
+                                  color:
+                                      AppTheme.primaryDarkBlue.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: Icon(Icons.business, color: AppTheme.primaryDarkBlue, size: 18),
+                                child: const Icon(Icons.business,
+                                    color: AppTheme.primaryDarkBlue, size: 18),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(c['name']!, 
-                                      style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87)),
-                                    Text('${c['email']} • ${c['phone']}', 
-                                      style: GoogleFonts.lato(fontSize: 12, color: AppTheme.subtitleGray),
-                                      overflow: TextOverflow.ellipsis),
+                                    Text(c['name']!,
+                                        style: GoogleFonts.lato(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black87)),
+                                    Text('${c['email']} • ${c['phone']}',
+                                        style: GoogleFonts.lato(
+                                            fontSize: 12,
+                                            color: AppTheme.subtitleGray),
+                                        overflow: TextOverflow.ellipsis),
                                   ],
                                 ),
                               ),
-                              if (_selectedCustomer == c['name']) 
-                                Icon(Icons.check_circle, color: AppTheme.primaryDarkBlue, size: 22),
+                              if (_selectedCustomer == c['name'])
+                                const Icon(Icons.check_circle,
+                                    color: AppTheme.primaryDarkBlue, size: 22),
                             ],
                           ),
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Row(
                       children: [
-                        const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+                        const Expanded(
+                            child: Divider(color: Color(0xFFE2E8F0))),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text('OR', 
-                            style: GoogleFonts.lato(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF94A3B8))),
+                          child: Text('OR',
+                              style: GoogleFonts.lato(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF94A3B8))),
                         ),
-                        const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+                        const Expanded(
+                            child: Divider(color: Color(0xFFE2E8F0))),
                       ],
                     ),
                   ),
@@ -545,37 +676,76 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        border: Border.all(color: _showNewCustomerForm ? AppTheme.primaryDarkBlue : Colors.grey.shade200, width: _showNewCustomerForm ? 1.5 : 1),
+                        border: Border.all(
+                            color: _showNewCustomerForm
+                                ? AppTheme.primaryDarkBlue
+                                : Colors.grey.shade200,
+                            width: _showNewCustomerForm ? 1.5 : 1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(_showNewCustomerForm ? Icons.close : Icons.person_add, 
-                            size: 18, color: _showNewCustomerForm ? AppTheme.primaryDarkBlue : AppTheme.subtitleGray),
+                          Icon(
+                              _showNewCustomerForm
+                                  ? Icons.close
+                                  : Icons.person_add,
+                              size: 18,
+                              color: _showNewCustomerForm
+                                  ? AppTheme.primaryDarkBlue
+                                  : AppTheme.subtitleGray),
                           const SizedBox(width: 8),
-                          Text(_showNewCustomerForm ? 'Cancel' : 'Create New Customer', 
-                            style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w600, 
-                            color: _showNewCustomerForm ? AppTheme.primaryDarkBlue : AppTheme.subtitleGray)),
+                          Text(
+                              _showNewCustomerForm
+                                  ? 'Cancel'
+                                  : 'Create New Customer',
+                              style: GoogleFonts.lato(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: _showNewCustomerForm
+                                      ? AppTheme.primaryDarkBlue
+                                      : AppTheme.subtitleGray)),
                         ],
                       ),
                     ),
                   ),
                   if (_showNewCustomerForm) ...[
                     const SizedBox(height: 16),
-                    _buildField(controller: _customerNameController, label: 'Customer Name', hint: 'Enter customer name', icon: Icons.person),
+                    _buildField(
+                        controller: _customerNameController,
+                        label: 'Customer Name',
+                        hint: 'Enter customer name',
+                        icon: Icons.person),
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        Expanded(child: _buildField(controller: _customerEmailController, label: 'Email', hint: 'email@example.com', icon: Icons.email)),
+                        Expanded(
+                            child: _buildField(
+                                controller: _customerEmailController,
+                                label: 'Email',
+                                hint: 'email@example.com',
+                                icon: Icons.email)),
                         const SizedBox(width: 12),
-                        Expanded(child: _buildField(controller: _customerPhoneController, label: 'Phone', hint: '+91 9876543210', icon: Icons.phone)),
+                        Expanded(
+                            child: _buildField(
+                                controller: _customerPhoneController,
+                                label: 'Phone',
+                                hint: '+91 9876543210',
+                                icon: Icons.phone)),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    _buildField(controller: _customerAddressController, label: 'Address', hint: 'Enter address', icon: Icons.location_on),
+                    _buildField(
+                        controller: _customerAddressController,
+                        label: 'Address',
+                        hint: 'Enter address',
+                        icon: Icons.location_on),
                     const SizedBox(height: 12),
-                    _buildField(controller: _customerGstController, label: 'GST Number', hint: '29AAACB1234E1Z5', icon: Icons.receipt),
+                    _buildField(
+                        controller: _customerGstController,
+                        label: 'GST Number',
+                        hint: '29AAACB1234E1Z5',
+                        icon: Icons.receipt),
                   ],
                 ],
               ),
@@ -588,7 +758,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
 
   Widget _buildInvoiceDetailsSection() {
     final bool isCompleted = _currentSection > 1;
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -603,17 +773,19 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: isCompleted ? AppTheme.lightBlueBg : Colors.white,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryDarkBlue.withOpacity(0.1), 
+                    color: AppTheme.primaryDarkBlue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(Icons.receipt_long, color: AppTheme.primaryDarkBlue, size: 20),
+                  child: const Icon(Icons.receipt_long,
+                      color: AppTheme.primaryDarkBlue, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -621,28 +793,40 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('INVOICE DETAILS', 
-                        style: GoogleFonts.lato(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.subtitleGray, letterSpacing: 0.5)),
+                      Text('INVOICE DETAILS',
+                          style: GoogleFonts.lato(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.subtitleGray,
+                              letterSpacing: 0.5)),
                       if (isCompleted)
-                        Text('#${_invoiceNumberController.text}', 
-                          style: GoogleFonts.lato(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black87)),
+                        Text('#${_invoiceNumberController.text}',
+                            style: GoogleFonts.lato(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87)),
                     ],
                   ),
                 ),
                 if (isCompleted) ...[
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withOpacity(0.1), 
+                      color: const Color(0xFF10B981).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Text('Done', 
-                      style: GoogleFonts.lato(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF10B981))),
+                    child: Text('Done',
+                        style: GoogleFonts.lato(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF10B981))),
                   ),
                   const SizedBox(width: 8),
                   InkWell(
                     onTap: () => setState(() => _currentSection = 1),
-                    child: Icon(Icons.edit, size: 18, color: AppTheme.subtitleGray),
+                    child: const Icon(Icons.edit,
+                        size: 18, color: AppTheme.subtitleGray),
                   ),
                 ],
               ],
@@ -656,24 +840,48 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                 children: [
                   Row(
                     children: [
-                      Expanded(child: _buildField(controller: _invoiceNumberController, label: 'INVOICE #', hint: 'INV-001', icon: Icons.tag)),
+                      Expanded(
+                          child: _buildField(
+                              controller: _invoiceNumberController,
+                              label: 'INVOICE #',
+                              hint: 'INV-001',
+                              icon: Icons.tag)),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildField(controller: _referenceController, label: 'REFERENCE', hint: 'PO Number', icon: Icons.link)),
+                      Expanded(
+                          child: _buildField(
+                              controller: _referenceController,
+                              label: 'REFERENCE',
+                              hint: 'PO Number',
+                              icon: Icons.link)),
                     ],
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(child: _buildDatePicker(label: 'ISSUE DATE', selectedDate: _issueDate, onSelected: (d) => setState(() {
-                        _issueDate = d;
-                        if (_dueDate == null || d.isAfter(_dueDate!)) _dueDate = d.add(const Duration(days: 7));
-                      }))),
+                      Expanded(
+                          child: _buildDatePicker(
+                              label: 'ISSUE DATE',
+                              selectedDate: _issueDate,
+                              onSelected: (d) => setState(() {
+                                    _issueDate = d;
+                                    if (_dueDate == null ||
+                                        d.isAfter(_dueDate!))
+                                      _dueDate = d.add(const Duration(days: 7));
+                                  }))),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildDatePicker(label: 'DUE DATE', selectedDate: _dueDate, onSelected: (d) => setState(() => _dueDate = d))),
+                      Expanded(
+                          child: _buildDatePicker(
+                              label: 'DUE DATE',
+                              selectedDate: _dueDate,
+                              onSelected: (d) => setState(() => _dueDate = d))),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _buildDropdown(label: 'CURRENCY', value: _selectedCurrency, items: _currencies, onChanged: (v) => setState(() => _selectedCurrency = v!)),
+                  _buildDropdown(
+                      label: 'CURRENCY',
+                      value: _selectedCurrency,
+                      items: _currencies,
+                      onChanged: (v) => setState(() => _selectedCurrency = v!)),
                 ],
               ),
             ),
@@ -701,10 +909,11 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryDarkBlue.withOpacity(0.1), 
+                    color: AppTheme.primaryDarkBlue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(Icons.shopping_cart, color: AppTheme.primaryDarkBlue, size: 20),
+                  child: const Icon(Icons.shopping_cart,
+                      color: AppTheme.primaryDarkBlue, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -712,10 +921,17 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('LINE ITEMS', 
-                        style: GoogleFonts.lato(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.subtitleGray, letterSpacing: 0.5)),
-                      Text('${_items.length} item(s) added', 
-                        style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87)),
+                      Text('LINE ITEMS',
+                          style: GoogleFonts.lato(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.subtitleGray,
+                              letterSpacing: 0.5)),
+                      Text('${_items.length} item(s) added',
+                          style: GoogleFonts.lato(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87)),
                     ],
                   ),
                 ),
@@ -726,12 +942,16 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                       setState(() => _showNewItemForm = true);
                     },
                     icon: const Icon(Icons.add, size: 18),
-                    label: Text('Add Item', style: GoogleFonts.lato(fontSize: 13, fontWeight: FontWeight.w600)),
+                    label: Text('Add Item',
+                        style: GoogleFonts.lato(
+                            fontSize: 13, fontWeight: FontWeight.w600)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryDarkBlue,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
                       elevation: 0,
                     ),
                   ),
@@ -745,11 +965,15 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
               children: [
                 if (!_showNewItemForm && _existingItems.isNotEmpty) ...[
                   DropdownButtonFormField<String>(
-                    value: _selectedExistingItem,
+                    initialValue: _selectedExistingItem,
                     isExpanded: true,
-                    hint: Text('Select from existing items...', 
-                      style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w500, color: const Color(0xFF94A3B8))),
-                    icon: Icon(Icons.arrow_drop_down, color: AppTheme.primaryDarkBlue, size: 24),
+                    hint: Text('Select from existing items...',
+                        style: GoogleFonts.lato(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF94A3B8))),
+                    icon: const Icon(Icons.arrow_drop_down,
+                        color: AppTheme.primaryDarkBlue, size: 24),
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -761,9 +985,11 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppTheme.primaryDarkBlue, width: 2),
+                        borderSide: const BorderSide(
+                            color: AppTheme.primaryDarkBlue, width: 2),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
                       filled: true,
                       fillColor: const Color(0xFFF8F9FC),
                     ),
@@ -771,15 +997,17 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                       return DropdownMenuItem<String>(
                         value: item['name'],
                         child: Text(
-                          '${item['name']} (${item['code']}) - ${_selectedCurrency} ${item['price']} / ${item['unit']}',
-                          style: GoogleFonts.lato(fontSize: 13, color: Colors.black87),
+                          '${item['name']} (${item['code']}) - $_selectedCurrency ${item['price']} / ${item['unit']}',
+                          style: GoogleFonts.lato(
+                              fontSize: 13, color: Colors.black87),
                           overflow: TextOverflow.ellipsis,
                         ),
                       );
                     }).toList(),
                     onChanged: (value) {
                       if (value != null) {
-                        final selected = _existingItems.firstWhere((item) => item['name'] == value);
+                        final selected = _existingItems
+                            .firstWhere((item) => item['name'] == value);
                         setState(() {
                           _items.add(InvoiceItem(
                             description: selected['name'],
@@ -798,10 +1026,10 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                   const SizedBox(height: 16),
                   Center(
                     child: Text('— or create a new item —',
-                      style: GoogleFonts.lato(fontSize: 12, color: const Color(0xFF94A3B8))),
+                        style: GoogleFonts.lato(
+                            fontSize: 12, color: const Color(0xFF94A3B8))),
                   ),
                 ],
-                
                 if (_showNewItemForm) ...[
                   Container(
                     decoration: BoxDecoration(
@@ -813,25 +1041,37 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                       children: [
                         Container(
                           padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppTheme.lightBlueBg,
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                            borderRadius:
+                                BorderRadius.vertical(top: Radius.circular(12)),
                           ),
                           child: Row(
                             children: [
-                              Icon(_editingItemIndex >= 0 ? Icons.edit : Icons.add_circle_outline, 
-                                color: AppTheme.primaryDarkBlue, size: 20),
+                              Icon(
+                                  _editingItemIndex >= 0
+                                      ? Icons.edit
+                                      : Icons.add_circle_outline,
+                                  color: AppTheme.primaryDarkBlue,
+                                  size: 20),
                               const SizedBox(width: 8),
                               Expanded(
-                                child: Text(_editingItemIndex >= 0 ? 'Edit Item' : 'Create New Item',
-                                  style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.black87)),
+                                child: Text(
+                                    _editingItemIndex >= 0
+                                        ? 'Edit Item'
+                                        : 'Create New Item',
+                                    style: GoogleFonts.lato(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.black87)),
                               ),
                               IconButton(
                                 onPressed: () => setState(() {
                                   _showNewItemForm = false;
                                   _clearItemForm();
                                 }),
-                                icon: Icon(Icons.close, size: 20, color: Colors.grey.shade600),
+                                icon: Icon(Icons.close,
+                                    size: 20, color: Colors.grey.shade600),
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
                               ),
@@ -842,11 +1082,20 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
-                              _buildField(controller: _itemDescController, label: 'Item Description', hint: 'Enter item name', icon: Icons.description),
+                              _buildField(
+                                  controller: _itemDescController,
+                                  label: 'Item Description',
+                                  hint: 'Enter item name',
+                                  icon: Icons.description),
                               const SizedBox(height: 12),
                               Row(
                                 children: [
-                                  Expanded(child: _buildField(controller: _itemCodeController, label: 'Code', hint: 'SKU-001', icon: Icons.qr_code)),
+                                  Expanded(
+                                      child: _buildField(
+                                          controller: _itemCodeController,
+                                          label: 'Code',
+                                          hint: 'SKU-001',
+                                          icon: Icons.qr_code)),
                                   const SizedBox(width: 12),
                                   Expanded(child: _buildUnitDropdown()),
                                 ],
@@ -854,17 +1103,37 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                               const SizedBox(height: 12),
                               Row(
                                 children: [
-                                  Expanded(child: _buildCurrencyDropdownForItem()),
+                                  Expanded(
+                                      child: _buildCurrencyDropdownForItem()),
                                   const SizedBox(width: 12),
-                                  Expanded(child: _buildField(controller: _itemPriceController, label: 'Price', hint: '0.00', icon: Icons.currency_rupee, keyboardType: TextInputType.number)),
+                                  Expanded(
+                                      child: _buildField(
+                                          controller: _itemPriceController,
+                                          label: 'Price',
+                                          hint: '0.00',
+                                          icon: Icons.currency_rupee,
+                                          keyboardType: TextInputType.number)),
                                 ],
                               ),
                               const SizedBox(height: 12),
                               Row(
                                 children: [
-                                  Expanded(child: _buildField(controller: _itemQtyController, label: 'Quantity', hint: '1', icon: Icons.numbers, keyboardType: TextInputType.number)),
+                                  Expanded(
+                                      child: _buildField(
+                                          controller: _itemQtyController,
+                                          label: 'Quantity',
+                                          hint: '1',
+                                          icon: Icons.numbers,
+                                          keyboardType: TextInputType.number)),
                                   const SizedBox(width: 12),
-                                  Expanded(child: _buildDropdown(label: 'Tax (%)', value: _itemTaxPercentage, items: _taxOptions, onChanged: (v) => setState(() => _itemTaxPercentage = v!), displayFn: (v) => '$v%')),
+                                  Expanded(
+                                      child: _buildDropdown(
+                                          label: 'Tax (%)',
+                                          value: _itemTaxPercentage,
+                                          items: _taxOptions,
+                                          onChanged: (v) => setState(
+                                              () => _itemTaxPercentage = v!),
+                                          displayFn: (v) => '$v%')),
                                 ],
                               ),
                               const SizedBox(height: 16),
@@ -879,12 +1148,19 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                         });
                                       },
                                       style: OutlinedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
-                                        side: BorderSide(color: Colors.grey.shade300),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
+                                        side: BorderSide(
+                                            color: Colors.grey.shade300),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10)),
                                       ),
-                                      child: Text('Cancel', 
-                                        style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.subtitleGray)),
+                                      child: Text('Cancel',
+                                          style: GoogleFonts.lato(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppTheme.subtitleGray)),
                                     ),
                                   ),
                                   const SizedBox(width: 12),
@@ -893,18 +1169,34 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                     child: ElevatedButton(
                                       onPressed: _saveItem,
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppTheme.primaryDarkBlue,
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        backgroundColor:
+                                            AppTheme.primaryDarkBlue,
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10)),
                                         elevation: 0,
                                       ),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
-                                          Icon(_editingItemIndex >= 0 ? Icons.save : Icons.add, size: 18, color: Colors.white),
+                                          Icon(
+                                              _editingItemIndex >= 0
+                                                  ? Icons.save
+                                                  : Icons.add,
+                                              size: 18,
+                                              color: Colors.white),
                                           const SizedBox(width: 8),
-                                          Text(_editingItemIndex >= 0 ? 'Update Item' : 'Add Item',
-                                            style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+                                          Text(
+                                              _editingItemIndex >= 0
+                                                  ? 'Update Item'
+                                                  : 'Add Item',
+                                              style: GoogleFonts.lato(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.white)),
                                         ],
                                       ),
                                     ),
@@ -918,22 +1210,26 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                     ),
                   ),
                 ],
-                
                 if (_items.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: AppTheme.lightBlueBg,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       children: [
-                        Text('Added Items', 
-                          style: GoogleFonts.lato(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.black87)),
+                        Text('Added Items',
+                            style: GoogleFonts.lato(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black87)),
                         const Spacer(),
-                        Text('${_items.length} item(s)', 
-                          style: GoogleFonts.lato(fontSize: 12, color: AppTheme.subtitleGray)),
+                        Text('${_items.length} item(s)',
+                            style: GoogleFonts.lato(
+                                fontSize: 12, color: AppTheme.subtitleGray)),
                       ],
                     ),
                   ),
@@ -959,7 +1255,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
 
   Widget _buildItemTile(int index, InvoiceItem item) {
     final total = item.price * item.quantity * (1 + item.taxPercentage / 100);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -974,37 +1270,50 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: AppTheme.primaryDarkBlue.withOpacity(0.1), 
+              color: AppTheme.primaryDarkBlue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Center(child: Text('${index + 1}', 
-              style: GoogleFonts.lato(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.primaryDarkBlue))),
+            child: Center(
+                child: Text('${index + 1}',
+                    style: GoogleFonts.lato(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.primaryDarkBlue))),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.description, 
-                  style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87)),
+                Text(item.description,
+                    style: GoogleFonts.lato(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87)),
                 const SizedBox(height: 4),
                 Wrap(
                   spacing: 8,
                   runSpacing: 4,
                   children: [
-                    Text('${item.quantity} × ${item.unit}', 
-                      style: GoogleFonts.lato(fontSize: 12, color: AppTheme.subtitleGray)),
-                    Text('${item.currency} ${item.price.toStringAsFixed(2)}', 
-                      style: GoogleFonts.lato(fontSize: 12, color: AppTheme.subtitleGray)),
+                    Text('${item.quantity} × ${item.unit}',
+                        style: GoogleFonts.lato(
+                            fontSize: 12, color: AppTheme.subtitleGray)),
+                    Text('${item.currency} ${item.price.toStringAsFixed(2)}',
+                        style: GoogleFonts.lato(
+                            fontSize: 12, color: AppTheme.subtitleGray)),
                     if (item.taxPercentage > 0)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryDarkBlue.withOpacity(0.1), 
+                          color: AppTheme.primaryDarkBlue.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: Text('${item.taxPercentage}%', 
-                          style: GoogleFonts.lato(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.primaryDarkBlue)),
+                        child: Text('${item.taxPercentage}%',
+                            style: GoogleFonts.lato(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primaryDarkBlue)),
                       ),
                   ],
                 ),
@@ -1015,19 +1324,24 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text('${item.currency} ${total.toStringAsFixed(2)}',
-                style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)),
+                  style: GoogleFonts.lato(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87)),
               const SizedBox(height: 4),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   InkWell(
                     onTap: () => _editItem(index),
-                    child: Icon(Icons.edit, size: 16, color: AppTheme.subtitleGray),
+                    child: const Icon(Icons.edit,
+                        size: 16, color: AppTheme.subtitleGray),
                   ),
                   const SizedBox(width: 12),
                   InkWell(
                     onTap: () => setState(() => _items.removeAt(index)),
-                    child: const Icon(Icons.delete_outline, size: 16, color: Color(0xFFEF4444)),
+                    child: const Icon(Icons.delete_outline,
+                        size: 16, color: Color(0xFFEF4444)),
                   ),
                 ],
               ),
@@ -1042,7 +1356,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     final subtotal = _calculateSubtotal();
     final tax = _calculateTax();
     final total = _calculateTotal();
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1060,7 +1374,8 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
             children: [
               const Expanded(
                 flex: 2,
-                child: Text('Shipping', style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
+                child: Text('Shipping',
+                    style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
               ),
               Expanded(
                 flex: 2,
@@ -1068,19 +1383,25 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                   controller: _shippingController,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.right,
-                  style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.lato(
+                      fontSize: 14, fontWeight: FontWeight.w600),
                   decoration: InputDecoration(
                     hintText: '0.00',
                     hintStyle: GoogleFonts.lato(color: const Color(0xFF94A3B8)),
                     prefixText: '$_selectedCurrency ',
-                    prefixStyle: GoogleFonts.lato(fontSize: 13, color: AppTheme.subtitleGray),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade200)),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    prefixStyle: GoogleFonts.lato(
+                        fontSize: 13, color: AppTheme.subtitleGray),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey.shade200)),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     isDense: true,
                     filled: true,
                     fillColor: Colors.white,
                   ),
-                  onChanged: (v) => setState(() => _shippingCharge = double.tryParse(v) ?? 0.0),
+                  onChanged: (v) => setState(
+                      () => _shippingCharge = double.tryParse(v) ?? 0.0),
                 ),
               ),
             ],
@@ -1090,7 +1411,8 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
             children: [
               const Expanded(
                 flex: 2,
-                child: Text('Discount', style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
+                child: Text('Discount',
+                    style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
               ),
               Expanded(
                 flex: 2,
@@ -1098,19 +1420,25 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                   controller: _discountController,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.right,
-                  style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.lato(
+                      fontSize: 14, fontWeight: FontWeight.w600),
                   decoration: InputDecoration(
                     hintText: '0.00',
                     hintStyle: GoogleFonts.lato(color: const Color(0xFF94A3B8)),
                     prefixText: '$_selectedCurrency ',
-                    prefixStyle: GoogleFonts.lato(fontSize: 13, color: AppTheme.subtitleGray),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade200)),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    prefixStyle: GoogleFonts.lato(
+                        fontSize: 13, color: AppTheme.subtitleGray),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey.shade200)),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     isDense: true,
                     filled: true,
                     fillColor: Colors.white,
                   ),
-                  onChanged: (v) => setState(() => _discount = double.tryParse(v) ?? 0.0),
+                  onChanged: (v) =>
+                      setState(() => _discount = double.tryParse(v) ?? 0.0),
                 ),
               ),
             ],
@@ -1127,7 +1455,9 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
             decoration: InputDecoration(
               hintText: 'Terms or notes...',
               hintStyle: GoogleFonts.lato(color: const Color(0xFF94A3B8)),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade200)),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.grey.shade200)),
               contentPadding: const EdgeInsets.all(12),
               filled: true,
               fillColor: Colors.white,
@@ -1167,7 +1497,12 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('UNIT', style: GoogleFonts.lato(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.subtitleGray, letterSpacing: 0.5)),
+        Text('UNIT',
+            style: GoogleFonts.lato(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.subtitleGray,
+                letterSpacing: 0.5)),
         const SizedBox(height: 4),
         Container(
           decoration: BoxDecoration(
@@ -1177,18 +1512,25 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButtonFormField<String>(
-              value: _selectedItemUnit,
+              initialValue: _selectedItemUnit,
               isExpanded: true,
               decoration: const InputDecoration(
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                prefixIcon: Icon(Icons.straighten, size: 18, color: Color(0xFF94A3B8)),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                prefixIcon:
+                    Icon(Icons.straighten, size: 18, color: Color(0xFF94A3B8)),
               ),
-              icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF64748B), size: 20),
+              icon: const Icon(Icons.keyboard_arrow_down,
+                  color: Color(0xFF64748B), size: 20),
               items: _unitOptions.map((unit) {
                 return DropdownMenuItem<String>(
                   value: unit,
-                  child: Text(unit, style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black87)),
+                  child: Text(unit,
+                      style: GoogleFonts.lato(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87)),
                 );
               }).toList(),
               onChanged: (value) => setState(() => _selectedItemUnit = value!),
@@ -1204,7 +1546,12 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('CURRENCY', style: GoogleFonts.lato(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.subtitleGray, letterSpacing: 0.5)),
+        Text('CURRENCY',
+            style: GoogleFonts.lato(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.subtitleGray,
+                letterSpacing: 0.5)),
         const SizedBox(height: 4),
         Container(
           decoration: BoxDecoration(
@@ -1214,18 +1561,25 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButtonFormField<String>(
-              value: _itemCurrency,
+              initialValue: _itemCurrency,
               isExpanded: true,
               decoration: const InputDecoration(
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                prefixIcon: Icon(Icons.attach_money, size: 18, color: Color(0xFF94A3B8)),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                prefixIcon: Icon(Icons.attach_money,
+                    size: 18, color: Color(0xFF94A3B8)),
               ),
-              icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF64748B), size: 20),
+              icon: const Icon(Icons.keyboard_arrow_down,
+                  color: Color(0xFF64748B), size: 20),
               items: _currencies.map((currency) {
                 return DropdownMenuItem<String>(
                   value: currency,
-                  child: Text(currency, style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black87)),
+                  child: Text(currency,
+                      style: GoogleFonts.lato(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87)),
                 );
               }).toList(),
               onChanged: (value) => setState(() => _itemCurrency = value!),
@@ -1247,7 +1601,12 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label, style: GoogleFonts.lato(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.subtitleGray, letterSpacing: 0.5)),
+        Text(label,
+            style: GoogleFonts.lato(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.subtitleGray,
+                letterSpacing: 0.5)),
         const SizedBox(height: 4),
         TextFormField(
           controller: controller,
@@ -1255,12 +1614,21 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
           style: GoogleFonts.lato(fontSize: 14),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.lato(fontSize: 14, color: const Color(0xFF94A3B8)),
+            hintStyle:
+                GoogleFonts.lato(fontSize: 14, color: const Color(0xFF94A3B8)),
             prefixIcon: Icon(icon, size: 18, color: const Color(0xFF94A3B8)),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppTheme.primaryDarkBlue, width: 2)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey.shade200)),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey.shade200)),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                    color: AppTheme.primaryDarkBlue, width: 2)),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             isDense: true,
             filled: true,
             fillColor: Colors.white,
@@ -1270,12 +1638,20 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     );
   }
 
-  Widget _buildDatePicker({required String label, required DateTime? selectedDate, required Function(DateTime) onSelected}) {
+  Widget _buildDatePicker(
+      {required String label,
+      required DateTime? selectedDate,
+      required Function(DateTime) onSelected}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label, style: GoogleFonts.lato(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.subtitleGray, letterSpacing: 0.5)),
+        Text(label,
+            style: GoogleFonts.lato(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.subtitleGray,
+                letterSpacing: 0.5)),
         const SizedBox(height: 4),
         InkWell(
           onTap: () async {
@@ -1286,7 +1662,8 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
               lastDate: DateTime(2030),
               builder: (context, child) => Theme(
                 data: Theme.of(context).copyWith(
-                  colorScheme: const ColorScheme.light(primary: AppTheme.primaryDarkBlue),
+                  colorScheme: const ColorScheme.light(
+                      primary: AppTheme.primaryDarkBlue),
                 ),
                 child: child!,
               ),
@@ -1302,17 +1679,25 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.calendar_today, size: 18, color: Color(0xFF94A3B8)),
+                const Icon(Icons.calendar_today,
+                    size: 18, color: Color(0xFF94A3B8)),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    selectedDate != null ? DateFormat('dd MMM yyyy').format(selectedDate) : 'Select date',
-                    style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w500, 
-                      color: selectedDate != null ? Colors.black87 : const Color(0xFF94A3B8)),
+                    selectedDate != null
+                        ? DateFormat('dd MMM yyyy').format(selectedDate)
+                        : 'Select date',
+                    style: GoogleFonts.lato(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: selectedDate != null
+                            ? Colors.black87
+                            : const Color(0xFF94A3B8)),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Icon(Icons.arrow_drop_down, color: Color(0xFF94A3B8), size: 20),
+                const Icon(Icons.arrow_drop_down,
+                    color: Color(0xFF94A3B8), size: 20),
               ],
             ),
           ),
@@ -1321,18 +1706,22 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     );
   }
 
-  Widget _buildDropdown<T>({
-    required String label, 
-    required T value, 
-    required List<T> items, 
-    required Function(T?) onChanged, 
-    String Function(T)? displayFn
-  }) {
+  Widget _buildDropdown<T>(
+      {required String label,
+      required T value,
+      required List<T> items,
+      required Function(T?) onChanged,
+      String Function(T)? displayFn}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label, style: GoogleFonts.lato(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.subtitleGray, letterSpacing: 0.5)),
+        Text(label,
+            style: GoogleFonts.lato(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.subtitleGray,
+                letterSpacing: 0.5)),
         const SizedBox(height: 4),
         Container(
           decoration: BoxDecoration(
@@ -1342,20 +1731,28 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButtonFormField<T>(
-              value: value,
+              initialValue: value,
               isExpanded: true,
               decoration: const InputDecoration(
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               ),
-              icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF64748B), size: 20),
-              items: items.map((item) => DropdownMenuItem<T>(
-                value: item,
-                child: Text(
-                  displayFn != null ? displayFn(item) : item.toString(), 
-                  style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black87)
-                ),
-              )).toList(),
+              icon: const Icon(Icons.keyboard_arrow_down,
+                  color: Color(0xFF64748B), size: 20),
+              items: items
+                  .map((item) => DropdownMenuItem<T>(
+                        value: item,
+                        child: Text(
+                            displayFn != null
+                                ? displayFn(item)
+                                : item.toString(),
+                            style: GoogleFonts.lato(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black87)),
+                      ))
+                  .toList(),
               onChanged: onChanged,
             ),
           ),
@@ -1369,9 +1766,16 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
       hintText: hint,
       hintStyle: GoogleFonts.lato(fontSize: 14, color: const Color(0xFF94A3B8)),
       prefixIcon: Icon(icon, size: 20, color: const Color(0xFF94A3B8)),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppTheme.primaryDarkBlue, width: 2)),
+      border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade200)),
+      enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade200)),
+      focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide:
+              const BorderSide(color: AppTheme.primaryDarkBlue, width: 2)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       filled: true,
       fillColor: const Color(0xFFF8F9FC),
@@ -1391,12 +1795,13 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
           final subtotal = _calculateSubtotal();
           final tax = _calculateTax();
           final total = _calculateTotal();
-          final customerName = _selectedCustomer ?? _customerNameController.text;
+          final customerName =
+              _selectedCustomer ?? _customerNameController.text;
           final customerAddress = _customerAddressController.text;
           final customerGst = _customerGstController.text;
-          final paidAmount = 0.0;
+          const paidAmount = 0.0;
           final balanceDue = total - paidAmount;
-          
+
           return Container(
             decoration: const BoxDecoration(
               color: Colors.white,
@@ -1421,14 +1826,14 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                       Text(
                         'INVOICE PREVIEW',
                         style: GoogleFonts.lato(
-                          fontSize: 16, 
-                          fontWeight: FontWeight.w700, 
-                          color: AppTheme.primaryDarkBlue
-                        ),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.primaryDarkBlue),
                       ),
                       IconButton(
                         onPressed: () => Navigator.pop(context),
-                        icon: Icon(Icons.close, size: 20, color: AppTheme.subtitleGray),
+                        icon: const Icon(Icons.close,
+                            size: 20, color: AppTheme.subtitleGray),
                       ),
                     ],
                   ),
@@ -1447,11 +1852,10 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                             Text(
                               'INVOICE',
                               style: GoogleFonts.lato(
-                                fontSize: 24, 
-                                fontWeight: FontWeight.w800, 
-                                color: AppTheme.primaryDarkBlue, 
-                                letterSpacing: 1
-                              ),
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.primaryDarkBlue,
+                                  letterSpacing: 1),
                             ),
                             const SizedBox(height: 4),
                             Container(
@@ -1491,9 +1895,9 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 24),
-                        
+
                         // Invoice Number and Status
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1540,9 +1944,9 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 24),
-                        
+
                         // Customer and Invoice Details
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1589,7 +1993,8 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                       ),
                                     ),
                                   ],
-                                  if (_customerEmailController.text.isNotEmpty) ...[
+                                  if (_customerEmailController
+                                      .text.isNotEmpty) ...[
                                     const SizedBox(height: 4),
                                     Text(
                                       _customerEmailController.text,
@@ -1599,7 +2004,8 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                       ),
                                     ),
                                   ],
-                                  if (_customerPhoneController.text.isNotEmpty) ...[
+                                  if (_customerPhoneController
+                                      .text.isNotEmpty) ...[
                                     Text(
                                       _customerPhoneController.text,
                                       style: GoogleFonts.lato(
@@ -1626,23 +2032,35 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 8),
-                                  _buildPreviewDetailRow('ISSUE DATE', _issueDate != null ? DateFormat('dd MMM yyyy').format(_issueDate!) : '--'),
+                                  _buildPreviewDetailRow(
+                                      'ISSUE DATE',
+                                      _issueDate != null
+                                          ? DateFormat('dd MMM yyyy')
+                                              .format(_issueDate!)
+                                          : '--'),
                                   const SizedBox(height: 6),
-                                  _buildPreviewDetailRow('DUE DATE', _dueDate != null ? DateFormat('dd MMM yyyy').format(_dueDate!) : '--'),
+                                  _buildPreviewDetailRow(
+                                      'DUE DATE',
+                                      _dueDate != null
+                                          ? DateFormat('dd MMM yyyy')
+                                              .format(_dueDate!)
+                                          : '--'),
                                   const SizedBox(height: 6),
-                                  _buildPreviewDetailRow('CURRENCY', _selectedCurrency),
+                                  _buildPreviewDetailRow(
+                                      'CURRENCY', _selectedCurrency),
                                   if (_referenceController.text.isNotEmpty) ...[
                                     const SizedBox(height: 6),
-                                    _buildPreviewDetailRow('REFERENCE', _referenceController.text),
+                                    _buildPreviewDetailRow(
+                                        'REFERENCE', _referenceController.text),
                                   ],
                                 ],
                               ),
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 24),
-                        
+
                         // Items Table
                         Container(
                           decoration: BoxDecoration(
@@ -1652,10 +2070,12 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                           child: Column(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                decoration: BoxDecoration(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 10),
+                                decoration: const BoxDecoration(
                                   color: AppTheme.lightBlueBg,
-                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                  borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(12)),
                                 ),
                                 child: Row(
                                   children: [
@@ -1712,16 +2132,20 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                               ..._items.map((item) {
                                 final amount = item.price * item.quantity;
                                 return Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 10),
                                   decoration: const BoxDecoration(
-                                    border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+                                    border: Border(
+                                        bottom: BorderSide(
+                                            color: Color(0xFFE2E8F0))),
                                   ),
                                   child: Row(
                                     children: [
                                       Expanded(
                                         flex: 4,
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               item.description,
@@ -1736,7 +2160,8 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                                 'Tax: ${item.taxPercentage}%',
                                                 style: GoogleFonts.lato(
                                                   fontSize: 10,
-                                                  color: const Color(0xFF94A3B8),
+                                                  color:
+                                                      const Color(0xFF94A3B8),
                                                 ),
                                               ),
                                           ],
@@ -1779,13 +2204,13 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                     ],
                                   ),
                                 );
-                              }).toList(),
+                              }),
                             ],
                           ),
                         ),
-                        
+
                         const SizedBox(height: 24),
-                        
+
                         // Totals Section
                         Align(
                           alignment: Alignment.centerRight,
@@ -1800,22 +2225,26 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                               children: [
                                 _buildPreviewSummaryRow('Subtotal', subtotal),
                                 const SizedBox(height: 8),
-                                _buildPreviewSummaryRow('Shipping', _shippingCharge),
+                                _buildPreviewSummaryRow(
+                                    'Shipping', _shippingCharge),
                                 const SizedBox(height: 8),
                                 _buildPreviewSummaryRow('Tax', tax),
                                 const Divider(height: 24),
-                                _buildPreviewSummaryRow('Total', total, isTotal: true),
+                                _buildPreviewSummaryRow('Total', total,
+                                    isTotal: true),
                                 const SizedBox(height: 8),
                                 _buildPreviewSummaryRow('Paid', paidAmount),
                                 const Divider(height: 24),
-                                _buildPreviewSummaryRow('BALANCE DUE', balanceDue, isBalance: true),
+                                _buildPreviewSummaryRow(
+                                    'BALANCE DUE', balanceDue,
+                                    isBalance: true),
                               ],
                             ),
                           ),
                         ),
-                        
+
                         const SizedBox(height: 24),
-                        
+
                         // Notes Section
                         if (_notesController.text.isNotEmpty)
                           Container(
@@ -1848,9 +2277,9 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                               ],
                             ),
                           ),
-                        
+
                         const SizedBox(height: 24),
-                        
+
                         Center(
                           child: Text(
                             'Thank you for your business!',
@@ -1861,7 +2290,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                             ),
                           ),
                         ),
-                        
+
                         const SizedBox(height: 20),
                       ],
                     ),
@@ -1902,7 +2331,8 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                           child: ElevatedButton(
                             onPressed: () {
                               Navigator.pop(context);
-                              _showSnack('Invoice saved successfully!', color: const Color(0xFF10B981));
+                              _showSnack('Invoice saved successfully!',
+                                  color: const Color(0xFF10B981));
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppTheme.primaryDarkBlue,
@@ -1941,20 +2371,18 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
         Text(
           label,
           style: GoogleFonts.lato(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF94A3B8),
-            letterSpacing: 0.5
-          ),
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF94A3B8),
+              letterSpacing: 0.5),
         ),
         Flexible(
           child: Text(
             value,
             style: GoogleFonts.lato(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87
-            ),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87),
             textAlign: TextAlign.right,
             overflow: TextOverflow.ellipsis,
           ),
@@ -1963,7 +2391,8 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     );
   }
 
-  Widget _buildPreviewSummaryRow(String label, double amount, {bool isTotal = false, bool isBalance = false}) {
+  Widget _buildPreviewSummaryRow(String label, double amount,
+      {bool isTotal = false, bool isBalance = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -1971,8 +2400,12 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
           label,
           style: GoogleFonts.lato(
             fontSize: isBalance ? 12 : (isTotal ? 12 : 11),
-            fontWeight: isBalance ? FontWeight.w800 : (isTotal ? FontWeight.w700 : FontWeight.w500),
-            color: isBalance ? AppTheme.primaryDarkBlue : (isTotal ? Colors.black87 : AppTheme.subtitleGray),
+            fontWeight: isBalance
+                ? FontWeight.w800
+                : (isTotal ? FontWeight.w700 : FontWeight.w500),
+            color: isBalance
+                ? AppTheme.primaryDarkBlue
+                : (isTotal ? Colors.black87 : AppTheme.subtitleGray),
           ),
         ),
         Flexible(
@@ -1980,8 +2413,12 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
             '$_selectedCurrency ${NumberFormat('#,##0.00').format(amount)}',
             style: GoogleFonts.lato(
               fontSize: isBalance ? 14 : (isTotal ? 14 : 12),
-              fontWeight: isBalance ? FontWeight.bold : (isTotal ? FontWeight.bold : FontWeight.w600),
-              color: isBalance ? AppTheme.primaryDarkBlue : (isTotal ? Colors.black87 : AppTheme.subtitleGray),
+              fontWeight: isBalance
+                  ? FontWeight.bold
+                  : (isTotal ? FontWeight.bold : FontWeight.w600),
+              color: isBalance
+                  ? AppTheme.primaryDarkBlue
+                  : (isTotal ? Colors.black87 : AppTheme.subtitleGray),
             ),
             textAlign: TextAlign.right,
             overflow: TextOverflow.ellipsis,

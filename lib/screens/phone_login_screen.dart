@@ -194,7 +194,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => BusinessSetupScreen(
+            builder: (context) => const BusinessSetupScreen(
               businessName: '',
               email: '',
             ),

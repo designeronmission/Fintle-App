@@ -2,119 +2,213 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
-import 'create_invoice_screen.dart';
-import 'customer_screen.dart'; // Import CustomerScreen
-import 'dashboard_screen.dart'; // Import DashboardScreen (you may need to create this)
+import 'customer_screen.dart';
+import 'create_customer_screen.dart';
 
-// ==================== MAIN INVOICE LIST SCREEN ====================
-class InvoiceListScreen extends StatefulWidget {
-  const InvoiceListScreen({super.key});
+// ==================== MAIN CUSTOMER LIST SCREEN ====================
+class CustomerScreen extends StatefulWidget {
+  const CustomerScreen({super.key});
 
   @override
-  State<InvoiceListScreen> createState() => _InvoiceListScreenState();
+  State<CustomerScreen> createState() => _CustomerScreenState();
 }
 
-class _InvoiceListScreenState extends State<InvoiceListScreen> {
+class _CustomerScreenState extends State<CustomerScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedStatus = 'All';
+  String _selectedType = 'All';
   final ScrollController _scrollController = ScrollController();
   bool _isSearchSticky = false;
 
-  final List<String> _filterOptions = [
-    'All',
-    'Draft',
-    'Sent',
-    'Paid',
-    'Overdue'
-  ];
+  final List<String> _filterOptions = ['All', 'Active', 'Inactive'];
 
-  // Sample invoice data
-  final List<Map<String, dynamic>> _allInvoices = [
+  // Sample customer data
+  final List<Map<String, dynamic>> _allCustomers = [
     {
-      'id': 'INV-001',
-      'customer': 'ABC Corporation',
+      'id': 'CUST-001',
+      'name': 'ABC Corporation',
       'email': 'abc@corporation.com',
       'phone': '+91 98765 43210',
       'address': '123 Business Park, Mumbai',
       'gst': '29AAACB1234E1Z5',
-      'amount': 12500.00,
-      'date': DateTime.now().subtract(const Duration(days: 2)),
-      'dueDate': DateTime.now().add(const Duration(days: 5)),
-      'status': 'Paid',
-      'items': 2,
-      'notes': 'Thanks for your business!',
+      'status': 'Active',
+      'totalReceivable': 12500.00,
+      'totalCollected': 8500.00,
+      'outstanding': 4000.00,
+      'totalInvoices': 5,
+      'paidInvoices': 3,
+      'overdueInvoices': 1,
+      'lastInvoiceDate': DateTime.now().subtract(const Duration(days: 2)),
+      'customerSince': DateTime.now().subtract(const Duration(days: 180)),
+      'creditLimit': 50000,
+      'paymentTerms': 'Net 30',
     },
     {
-      'id': 'INV-002',
-      'customer': 'XYZ Enterprises',
+      'id': 'CUST-002',
+      'name': 'XYZ Enterprises',
       'email': 'contact@xyz.com',
       'phone': '+91 99887 66554',
       'address': '45 Tech Hub, Bangalore',
       'gst': '27BBBCD5678E2Z8',
-      'amount': 8700.00,
-      'date': DateTime.now().subtract(const Duration(days: 5)),
-      'dueDate': DateTime.now().add(const Duration(days: 2)),
-      'status': 'Sent',
-      'items': 2,
-      'notes': 'Payment expected within 7 days',
+      'status': 'Active',
+      'totalReceivable': 8700.00,
+      'totalCollected': 8700.00,
+      'outstanding': 0.00,
+      'totalInvoices': 3,
+      'paidInvoices': 3,
+      'overdueInvoices': 0,
+      'lastInvoiceDate': DateTime.now().subtract(const Duration(days: 5)),
+      'customerSince': DateTime.now().subtract(const Duration(days: 90)),
+      'creditLimit': 25000,
+      'paymentTerms': 'Net 15',
     },
     {
-      'id': 'INV-003',
-      'customer': 'Tech Solutions Ltd',
+      'id': 'CUST-003',
+      'name': 'Tech Solutions Ltd',
       'email': 'info@techsolutions.com',
       'phone': '+91 87654 32109',
       'address': '12 IT Park, Chennai',
       'gst': '24CCCDE9012E3Z1',
-      'amount': 23400.00,
-      'date': DateTime.now().subtract(const Duration(days: 10)),
-      'dueDate': DateTime.now().subtract(const Duration(days: 3)),
-      'status': 'Overdue',
-      'items': 2,
-      'notes': 'Please process payment immediately',
+      'status': 'Active',
+      'totalReceivable': 23400.00,
+      'totalCollected': 15000.00,
+      'outstanding': 8400.00,
+      'totalInvoices': 8,
+      'paidInvoices': 5,
+      'overdueInvoices': 2,
+      'lastInvoiceDate': DateTime.now().subtract(const Duration(days: 3)),
+      'customerSince': DateTime.now().subtract(const Duration(days: 365)),
+      'creditLimit': 75000,
+      'paymentTerms': 'Net 45',
     },
     {
-      'id': 'INV-004',
-      'customer': 'Global Services Inc',
+      'id': 'CUST-004',
+      'name': 'Global Services Inc',
       'email': 'accounts@globalservices.com',
       'phone': '+91 76543 21098',
       'address': '78 Corporate Tower, Delhi',
       'gst': '27DDDEF1234E4Z2',
-      'amount': 5600.00,
-      'date': DateTime.now().subtract(const Duration(days: 1)),
-      'dueDate': DateTime.now().add(const Duration(days: 10)),
-      'status': 'Draft',
-      'items': 1,
-      'notes': 'Draft invoice - pending approval',
+      'status': 'Inactive',
+      'totalReceivable': 5600.00,
+      'totalCollected': 5600.00,
+      'outstanding': 0.00,
+      'totalInvoices': 2,
+      'paidInvoices': 2,
+      'overdueInvoices': 0,
+      'lastInvoiceDate': DateTime.now().subtract(const Duration(days: 60)),
+      'customerSince': DateTime.now().subtract(const Duration(days: 200)),
+      'creditLimit': 15000,
+      'paymentTerms': 'Net 30',
     },
     {
-      'id': 'INV-005',
-      'customer': 'Digital Marketing Pro',
+      'id': 'CUST-005',
+      'name': 'Digital Marketing Pro',
       'email': 'hello@digitalpro.com',
       'phone': '+91 65432 10987',
       'address': '34 Marketing Plaza, Pune',
       'gst': '29EEEFG5678E5Z3',
-      'amount': 18900.00,
-      'date': DateTime.now().subtract(const Duration(days: 3)),
-      'dueDate': DateTime.now().add(const Duration(days: 4)),
-      'status': 'Sent',
-      'items': 2,
-      'notes': 'Monthly retainer invoice',
+      'status': 'Active',
+      'totalReceivable': 18900.00,
+      'totalCollected': 10000.00,
+      'outstanding': 8900.00,
+      'totalInvoices': 6,
+      'paidInvoices': 4,
+      'overdueInvoices': 1,
+      'lastInvoiceDate': DateTime.now().subtract(const Duration(days: 1)),
+      'customerSince': DateTime.now().subtract(const Duration(days: 120)),
+      'creditLimit': 40000,
+      'paymentTerms': 'Net 30',
+    },
+    {
+      'id': 'CUST-006',
+      'name': 'Sunrise Industries',
+      'email': 'info@sunrise.com',
+      'phone': '+91 54321 09876',
+      'address': '56 Industrial Area, Ahmedabad',
+      'gst': '24FFGHI7890E6Z4',
+      'status': 'Active',
+      'totalReceivable': 3200.00,
+      'totalCollected': 3200.00,
+      'outstanding': 0.00,
+      'totalInvoices': 2,
+      'paidInvoices': 2,
+      'overdueInvoices': 0,
+      'lastInvoiceDate': DateTime.now().subtract(const Duration(days: 15)),
+      'customerSince': DateTime.now().subtract(const Duration(days: 60)),
+      'creditLimit': 10000,
+      'paymentTerms': 'Net 30',
+    },
+    {
+      'id': 'CUST-007',
+      'name': 'Blue Ocean Ventures',
+      'email': 'contact@blueocean.com',
+      'phone': '+91 43210 98765',
+      'address': '89 Business Bay, Hyderabad',
+      'gst': '36GGHIJ9012E7Z5',
+      'status': 'Active',
+      'totalReceivable': 9500.00,
+      'totalCollected': 5000.00,
+      'outstanding': 4500.00,
+      'totalInvoices': 4,
+      'paidInvoices': 2,
+      'overdueInvoices': 1,
+      'lastInvoiceDate': DateTime.now().subtract(const Duration(days: 7)),
+      'customerSince': DateTime.now().subtract(const Duration(days: 150)),
+      'creditLimit': 30000,
+      'paymentTerms': 'Net 30',
+    },
+    {
+      'id': 'CUST-008',
+      'name': 'Redwood Solutions',
+      'email': 'info@redwood.com',
+      'phone': '+91 32109 87654',
+      'address': '12 Tech Park, Kochi',
+      'gst': '32JKKLM1234E8Z6',
+      'status': 'Active',
+      'totalReceivable': 4700.00,
+      'totalCollected': 4700.00,
+      'outstanding': 0.00,
+      'totalInvoices': 3,
+      'paidInvoices': 3,
+      'overdueInvoices': 0,
+      'lastInvoiceDate': DateTime.now().subtract(const Duration(days: 10)),
+      'customerSince': DateTime.now().subtract(const Duration(days: 80)),
+      'creditLimit': 15000,
+      'paymentTerms': 'Net 15',
+    },
+    {
+      'id': 'CUST-009',
+      'name': 'Silver Star Traders',
+      'email': 'sales@silverstar.com',
+      'phone': '+91 21098 76543',
+      'address': '67 Market Street, Kolkata',
+      'gst': '19LLMNO5678E9Z7',
+      'status': 'Active',
+      'totalReceivable': 15200.00,
+      'totalCollected': 10000.00,
+      'outstanding': 5200.00,
+      'totalInvoices': 5,
+      'paidInvoices': 3,
+      'overdueInvoices': 1,
+      'lastInvoiceDate': DateTime.now().subtract(const Duration(days: 4)),
+      'customerSince': DateTime.now().subtract(const Duration(days: 250)),
+      'creditLimit': 35000,
+      'paymentTerms': 'Net 30',
     },
   ];
 
-  List<Map<String, dynamic>> _filteredInvoices = [];
+  List<Map<String, dynamic>> _filteredCustomers = [];
 
   @override
   void initState() {
     super.initState();
-    _filteredInvoices = List.from(_allInvoices);
-    _searchController.addListener(_filterInvoices);
+    _filteredCustomers = List.from(_allCustomers);
+    _searchController.addListener(_filterCustomers);
     _scrollController.addListener(_scrollListener);
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(_filterInvoices);
+    _searchController.removeListener(_filterCustomers);
     _scrollController.removeListener(_scrollListener);
     _searchController.dispose();
     _scrollController.dispose();
@@ -128,17 +222,18 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
     });
   }
 
-  void _filterInvoices() {
+  void _filterCustomers() {
     setState(() {
-      _filteredInvoices = _allInvoices.where((invoice) {
+      _filteredCustomers = _allCustomers.where((customer) {
         final searchQuery = _searchController.text.toLowerCase();
         final matchesSearch = searchQuery.isEmpty ||
-            invoice['id'].toLowerCase().contains(searchQuery) ||
-            invoice['customer'].toLowerCase().contains(searchQuery) ||
-            invoice['email'].toLowerCase().contains(searchQuery);
+            customer['id'].toLowerCase().contains(searchQuery) ||
+            customer['name'].toLowerCase().contains(searchQuery) ||
+            customer['email'].toLowerCase().contains(searchQuery) ||
+            customer['phone'].contains(searchQuery);
 
         final matchesStatus =
-            _selectedStatus == 'All' || invoice['status'] == _selectedStatus;
+            _selectedType == 'All' || customer['status'] == _selectedType;
 
         return matchesSearch && matchesStatus;
       }).toList();
@@ -179,7 +274,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Filter Invoices',
+                        'Filter Customers',
                         style: GoogleFonts.lato(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -217,7 +312,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: _filterOptions.map((status) {
-                      bool isSelected = _selectedStatus == status;
+                      bool isSelected = _selectedType == status;
                       return FilterChip(
                         selected: isSelected,
                         label: Text(
@@ -231,9 +326,9 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                         ),
                         onSelected: (selected) {
                           setState(() {
-                            _selectedStatus = status;
+                            _selectedType = status;
                           });
-                          _filterInvoices();
+                          _filterCustomers();
                           Navigator.pop(context);
                         },
                         backgroundColor: Colors.grey.shade100,
@@ -255,10 +350,10 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                         child: OutlinedButton(
                           onPressed: () {
                             setState(() {
-                              _selectedStatus = 'All';
+                              _selectedType = 'All';
                               _searchController.clear();
                             });
-                            _filterInvoices();
+                            _filterCustomers();
                             Navigator.pop(context);
                           },
                           style: OutlinedButton.styleFrom(
@@ -314,250 +409,60 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
     );
   }
 
-  void _showInvoiceDetail(Map<String, dynamic> invoice) {
+  void _showCustomerDetail(Map<String, dynamic> customer) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => InvoiceDetailScreen(invoice: invoice),
+        builder: (context) => CustomerDetailScreen(customer: customer),
       ),
     );
   }
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'Paid':
+      case 'Active':
         return const Color(0xFF10B981);
-      case 'Sent':
-        return const Color(0xFF3B82F6);
-      case 'Draft':
-        return const Color(0xFFF59E0B);
-      case 'Overdue':
+      case 'Inactive':
         return const Color(0xFFEF4444);
       default:
         return AppTheme.subtitleGray;
     }
   }
 
-  // Hamburger menu items
-  void _showHamburgerMenu() {
-    Scaffold.of(context).openDrawer();
-  }
-
-  // Bottom navigation current index
-  int _currentNavIndex = 0;
-
-  void _onNavBarTapped(int index) {
-    setState(() {
-      _currentNavIndex = index;
-    });
-
-    // Navigate based on index
-    switch (index) {
-      case 0:
-        // Already on Invoices
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const CustomerScreen()),
-        );
-        break;
-      case 2:
-        // Navigate to Dashboard (create if needed)
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => const DashboardScreen()),
-        // );
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final totalInvoices = _filteredInvoices.length;
-    final totalAmount = _filteredInvoices.fold(
-        0.0, (sum, inv) => sum + (inv['amount'] as double));
-    final overdueCount =
-        _filteredInvoices.where((inv) => inv['status'] == 'Overdue').length;
-    final overdueAmount = _filteredInvoices
-        .where((inv) => inv['status'] == 'Overdue')
-        .fold(0.0, (sum, inv) => sum + (inv['amount'] as double));
-    final paidCount =
-        _filteredInvoices.where((inv) => inv['status'] == 'Paid').length;
-    final paidAmount = _filteredInvoices
-        .where((inv) => inv['status'] == 'Paid')
-        .fold(0.0, (sum, inv) => sum + (inv['amount'] as double));
-    final draftCount =
-        _filteredInvoices.where((inv) => inv['status'] == 'Draft').length;
-    final draftAmount = _filteredInvoices
-        .where((inv) => inv['status'] == 'Draft')
-        .fold(0.0, (sum, inv) => sum + (inv['amount'] as double));
+    final totalCustomers = _filteredCustomers.length;
+    final totalReceivable = _filteredCustomers.fold(
+        0.0, (sum, customer) => sum + (customer['totalReceivable'] as double));
+    final customersToCollect = _filteredCustomers
+        .where((customer) => (customer['outstanding'] as double) > 0)
+        .toList();
+    final totalToCollect = customersToCollect.fold(
+        0.0, (sum, customer) => sum + (customer['outstanding'] as double));
+    final toCollectCount = customersToCollect.length;
+    final toPayCount = _filteredCustomers
+        .where((customer) => (customer['totalReceivable'] as double) > 0)
+        .length;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      // Add Drawer for Hamburger Menu
-      drawer: Drawer(
-        child: Container(
-          color: Colors.white,
-          child: Column(
-            children: [
-              // Drawer Header
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppTheme.primaryDarkBlue,
-                      AppTheme.primaryDarkBlue.withOpacity(0.8),
-                    ],
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.receipt_long,
-                        size: 28,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Invoice Manager',
-                      style: GoogleFonts.lato(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Manage your invoices easily',
-                      style: GoogleFonts.lato(
-                        fontSize: 12,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Drawer Items
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    _buildDrawerItem(
-                      icon: Icons.dashboard,
-                      title: 'Dashboard',
-                      onTap: () {
-                        Navigator.pop(context);
-                        // Navigate to dashboard
-                      },
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.receipt_long,
-                      title: 'Invoices',
-                      onTap: () {
-                        Navigator.pop(context);
-                        // Already on invoices
-                      },
-                      isSelected: true,
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.people,
-                      title: 'Customers',
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const CustomerScreen()),
-                        );
-                      },
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.payment,
-                      title: 'Payments',
-                      onTap: () {
-                        Navigator.pop(context);
-                        // Navigate to payments screen
-                      },
-                    ),
-                    const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                    _buildDrawerItem(
-                      icon: Icons.settings,
-                      title: 'Settings',
-                      onTap: () {
-                        Navigator.pop(context);
-                        // Navigate to settings
-                      },
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.help_outline,
-                      title: 'Help & Support',
-                      onTap: () {
-                        Navigator.pop(context);
-                        // Navigate to help
-                      },
-                    ),
-                    const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                    _buildDrawerItem(
-                      icon: Icons.logout,
-                      title: 'Logout',
-                      onTap: () {
-                        Navigator.pop(context);
-                        _showLogoutDialog();
-                      },
-                      isDestructive: true,
-                    ),
-                  ],
-                ),
-              ),
-              // Drawer Footer
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'Version 1.0.0',
-                  style: GoogleFonts.lato(
-                    fontSize: 11,
-                    color: AppTheme.subtitleGray,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu,
-                color: AppTheme.primaryDarkBlue, size: 24),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios,
+              color: AppTheme.primaryDarkBlue, size: 20),
+          onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Invoices',
+          'Customers',
           style: GoogleFonts.lato(
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: AppTheme.primaryDarkBlue,
           ),
         ),
+        // Removed actions (notification icon)
       ),
       body: Stack(
         children: [
@@ -577,12 +482,12 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // KPI Cards
+                        // Reduced size KPI Cards
                         Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
-                              // Total Invoices Card
+                              // Total Customers Card - Reduced size
                               Container(
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(12),
@@ -606,7 +511,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Total Invoices',
+                                          'Total Customers',
                                           style: GoogleFonts.lato(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w600,
@@ -615,7 +520,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          totalInvoices.toString(),
+                                          totalCustomers.toString(),
                                           style: GoogleFonts.lato(
                                             fontSize: 24,
                                             fontWeight: FontWeight.bold,
@@ -623,7 +528,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                           ),
                                         ),
                                         Text(
-                                          'Total amount',
+                                          'Registered accounts',
                                           style: GoogleFonts.lato(
                                             fontSize: 10,
                                             color: Colors.white70,
@@ -638,7 +543,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: const Icon(
-                                        Icons.receipt_long,
+                                        Icons.people_alt,
                                         size: 24,
                                         color: Colors.white,
                                       ),
@@ -647,7 +552,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                 ),
                               ),
                               const SizedBox(height: 10),
-                              // Three Cards Row
+                              // Two Cards Row - Reduced size
                               Row(
                                 children: [
                                   Expanded(
@@ -668,7 +573,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text(
-                                                'Overdue',
+                                                'To Pay',
                                                 style: GoogleFonts.lato(
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.w600,
@@ -679,22 +584,22 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                                 padding:
                                                     const EdgeInsets.all(4),
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFFEF4444)
+                                                  color: const Color(0xFF3B82F6)
                                                       .withOpacity(0.1),
                                                   borderRadius:
                                                       BorderRadius.circular(8),
                                                 ),
                                                 child: const Icon(
-                                                  Icons.warning_amber,
+                                                  Icons.payments,
                                                   size: 14,
-                                                  color: Color(0xFFEF4444),
+                                                  color: Color(0xFF3B82F6),
                                                 ),
                                               ),
                                             ],
                                           ),
                                           const SizedBox(height: 6),
                                           Text(
-                                            overdueCount.toString(),
+                                            '₹${NumberFormat('#,##0').format(totalReceivable)}',
                                             style: GoogleFonts.lato(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
@@ -702,11 +607,10 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                             ),
                                           ),
                                           Text(
-                                            '₹${NumberFormat('#,##0').format(overdueAmount)}',
+                                            '$toPayCount customers',
                                             style: GoogleFonts.lato(
                                               fontSize: 10,
-                                              color: const Color(0xFFEF4444),
-                                              fontWeight: FontWeight.w600,
+                                              color: AppTheme.subtitleGray,
                                             ),
                                           ),
                                         ],
@@ -732,71 +636,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text(
-                                                'Paid',
-                                                style: GoogleFonts.lato(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: AppTheme.subtitleGray,
-                                                ),
-                                              ),
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.all(4),
-                                                decoration: BoxDecoration(
-                                                  color: const Color(0xFF10B981)
-                                                      .withOpacity(0.1),
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
-                                                child: const Icon(
-                                                  Icons.check_circle,
-                                                  size: 14,
-                                                  color: Color(0xFF10B981),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 6),
-                                          Text(
-                                            paidCount.toString(),
-                                            style: GoogleFonts.lato(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black87,
-                                            ),
-                                          ),
-                                          Text(
-                                            '₹${NumberFormat('#,##0').format(paidAmount)}',
-                                            style: GoogleFonts.lato(
-                                              fontSize: 10,
-                                              color: const Color(0xFF10B981),
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                            color: Colors.grey.shade200),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                'Draft',
+                                                'To Collect',
                                                 style: GoogleFonts.lato(
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.w600,
@@ -813,7 +653,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                                       BorderRadius.circular(8),
                                                 ),
                                                 child: const Icon(
-                                                  Icons.edit_note,
+                                                  Icons.attach_money,
                                                   size: 14,
                                                   color: Color(0xFFF59E0B),
                                                 ),
@@ -822,7 +662,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                           ),
                                           const SizedBox(height: 6),
                                           Text(
-                                            draftCount.toString(),
+                                            '₹${NumberFormat('#,##0').format(totalToCollect)}',
                                             style: GoogleFonts.lato(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
@@ -830,11 +670,10 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                             ),
                                           ),
                                           Text(
-                                            '₹${NumberFormat('#,##0').format(draftAmount)}',
+                                            '$toCollectCount customers',
                                             style: GoogleFonts.lato(
                                               fontSize: 10,
-                                              color: const Color(0xFFF59E0B),
-                                              fontWeight: FontWeight.w600,
+                                              color: AppTheme.subtitleGray,
                                             ),
                                           ),
                                         ],
@@ -872,7 +711,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                           style: GoogleFonts.lato(fontSize: 13),
                                           decoration: InputDecoration(
                                             hintText:
-                                                'Search by Invoice # or Customer',
+                                                'Search by name, email or phone',
                                             hintStyle: GoogleFonts.lato(
                                               fontSize: 12,
                                               color: Colors.grey.shade400,
@@ -899,13 +738,13 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 16),
                                         decoration: BoxDecoration(
-                                          color: _selectedStatus != 'All'
+                                          color: _selectedType != 'All'
                                               ? AppTheme.primaryDarkBlue
                                               : Colors.white,
                                           borderRadius:
                                               BorderRadius.circular(12),
                                           border: Border.all(
-                                            color: _selectedStatus != 'All'
+                                            color: _selectedType != 'All'
                                                 ? AppTheme.primaryDarkBlue
                                                 : Colors.grey.shade200,
                                           ),
@@ -915,7 +754,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                             Icon(
                                               Icons.filter_list,
                                               size: 16,
-                                              color: _selectedStatus != 'All'
+                                              color: _selectedType != 'All'
                                                   ? Colors.white
                                                   : AppTheme.subtitleGray,
                                             ),
@@ -925,7 +764,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                               style: GoogleFonts.lato(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w600,
-                                                color: _selectedStatus != 'All'
+                                                color: _selectedType != 'All'
                                                     ? Colors.white
                                                     : Colors.black87,
                                               ),
@@ -938,7 +777,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                 ),
                               ),
                               const SizedBox(height: 10),
-                              if (_selectedStatus != 'All')
+                              if (_selectedType != 'All')
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16),
@@ -948,15 +787,15 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                       children: [
                                         Chip(
                                           label: Text(
-                                            'Status: $_selectedStatus',
+                                            'Status: $_selectedType',
                                             style:
                                                 GoogleFonts.lato(fontSize: 11),
                                           ),
                                           onDeleted: () {
                                             setState(() {
-                                              _selectedStatus = 'All';
+                                              _selectedType = 'All';
                                             });
-                                            _filterInvoices();
+                                            _filterCustomers();
                                           },
                                           backgroundColor: AppTheme.lightBlueBg,
                                           deleteIcon:
@@ -971,21 +810,21 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                           ),
                         ),
 
-                        // Invoice List
-                        if (_filteredInvoices.isEmpty)
+                        // Customer List
+                        if (_filteredCustomers.isEmpty)
                           Padding(
                             padding: const EdgeInsets.all(32),
                             child: Center(
                               child: Column(
                                 children: [
                                   Icon(
-                                    Icons.receipt_long_outlined,
+                                    Icons.people_outline,
                                     size: 60,
                                     color: Colors.grey.shade300,
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    'No invoices found',
+                                    'No customers found',
                                     style: GoogleFonts.lato(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
@@ -1009,11 +848,13 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: _filteredInvoices.length,
+                            itemCount: _filteredCustomers.length,
                             itemBuilder: (context, index) {
-                              final invoice = _filteredInvoices[index];
+                              final customer = _filteredCustomers[index];
                               final statusColor =
-                                  _getStatusColor(invoice['status']);
+                                  _getStatusColor(customer['status']);
+                              final outstanding =
+                                  customer['outstanding'] as double;
 
                               return Container(
                                 margin: const EdgeInsets.only(bottom: 10),
@@ -1026,7 +867,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                 child: Material(
                                   color: Colors.transparent,
                                   child: InkWell(
-                                    onTap: () => _showInvoiceDetail(invoice),
+                                    onTap: () => _showCustomerDetail(customer),
                                     borderRadius: BorderRadius.circular(12),
                                     child: Padding(
                                       padding: const EdgeInsets.all(12),
@@ -1044,7 +885,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                                       CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
-                                                      invoice['customer'],
+                                                      customer['name'],
                                                       style: GoogleFonts.lato(
                                                         fontSize: 14,
                                                         fontWeight:
@@ -1055,7 +896,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                                     ),
                                                     const SizedBox(height: 2),
                                                     Text(
-                                                      invoice['id'],
+                                                      customer['id'],
                                                       style: GoogleFonts.lato(
                                                         fontSize: 10,
                                                         color: AppTheme
@@ -1078,7 +919,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                                       BorderRadius.circular(12),
                                                 ),
                                                 child: Text(
-                                                  invoice['status'],
+                                                  customer['status'],
                                                   style: GoogleFonts.lato(
                                                     fontSize: 10,
                                                     fontWeight: FontWeight.w600,
@@ -1099,7 +940,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                               const SizedBox(width: 4),
                                               Expanded(
                                                 child: Text(
-                                                  invoice['email'],
+                                                  customer['email'],
                                                   style: GoogleFonts.lato(
                                                     fontSize: 11,
                                                     color:
@@ -1121,7 +962,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                               ),
                                               const SizedBox(width: 4),
                                               Text(
-                                                invoice['phone'],
+                                                customer['phone'],
                                                 style: GoogleFonts.lato(
                                                   fontSize: 11,
                                                   color: AppTheme.subtitleGray,
@@ -1138,50 +979,76 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Text(
-                                                'Amount',
-                                                style: GoogleFonts.lato(
-                                                  fontSize: 9,
-                                                  color: AppTheme.subtitleGray,
-                                                ),
+                                              Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'Receivable',
+                                                    style: GoogleFonts.lato(
+                                                      fontSize: 9,
+                                                      color:
+                                                          AppTheme.subtitleGray,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    '₹${NumberFormat('#,##0').format(customer['totalReceivable'])}',
+                                                    style: GoogleFonts.lato(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Colors.black87,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                              Text(
-                                                'Due Date',
-                                                style: GoogleFonts.lato(
-                                                  fontSize: 9,
-                                                  color: AppTheme.subtitleGray,
-                                                ),
+                                              Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.end,
+                                                children: [
+                                                  Text(
+                                                    'To Collect',
+                                                    style: GoogleFonts.lato(
+                                                      fontSize: 9,
+                                                      color:
+                                                          AppTheme.subtitleGray,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    '₹${NumberFormat('#,##0').format(outstanding)}',
+                                                    style: GoogleFonts.lato(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: outstanding > 0
+                                                          ? const Color(
+                                                              0xFFF59E0B)
+                                                          : const Color(
+                                                              0xFF10B981),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                '₹${NumberFormat('#,##0').format(invoice['amount'])}',
-                                                style: GoogleFonts.lato(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.black87,
-                                                ),
-                                              ),
-                                              Text(
-                                                DateFormat('dd MMM yyyy')
-                                                    .format(invoice['dueDate']),
-                                                style: GoogleFonts.lato(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: invoice['dueDate']
-                                                              .isBefore(DateTime
-                                                                  .now()) &&
-                                                          invoice['status'] !=
-                                                              'Paid'
-                                                      ? Colors.red
-                                                      : Colors.black87,
-                                                ),
-                                              ),
-                                            ],
+                                          const SizedBox(height: 6),
+                                          ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(2),
+                                            child: LinearProgressIndicator(
+                                              value: customer[
+                                                          'totalReceivable'] >
+                                                      0
+                                                  ? (customer['totalReceivable'] -
+                                                          outstanding) /
+                                                      customer[
+                                                          'totalReceivable']
+                                                  : 0.0,
+                                              backgroundColor:
+                                                  Colors.grey.shade200,
+                                              color: const Color(0xFF10B981),
+                                              minHeight: 3,
+                                            ),
                                           ),
                                           const SizedBox(height: 4),
                                           Row(
@@ -1189,16 +1056,16 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text(
-                                                '${invoice['items']} items',
+                                                '${customer['totalInvoices']} invoices',
                                                 style: GoogleFonts.lato(
                                                   fontSize: 9,
                                                   color: AppTheme.subtitleGray,
                                                 ),
                                               ),
-                                              if (invoice['status'] ==
-                                                  'Overdue')
+                                              if (customer['overdueInvoices'] >
+                                                  0)
                                                 Text(
-                                                  'Payment Overdue',
+                                                  '${customer['overdueInvoices']} overdue',
                                                   style: GoogleFonts.lato(
                                                     fontSize: 9,
                                                     color: Colors.red,
@@ -1222,7 +1089,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                 ),
               ),
 
-              // Create Invoice Button
+              // Create Customer Button
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -1244,13 +1111,14 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const CreateInvoiceScreen(),
+                            builder: (context) =>
+                                const CreateCustomerScreen(), // Change this line
                           ),
                         );
                       },
                       icon: const Icon(Icons.add, size: 18),
                       label: Text(
-                        'Create Invoice',
+                        'Create Customer',
                         style: GoogleFonts.lato(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -1301,7 +1169,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                           controller: _searchController,
                           style: GoogleFonts.lato(fontSize: 13),
                           decoration: InputDecoration(
-                            hintText: 'Search by Invoice # or Customer',
+                            hintText: 'Search by name, email or phone',
                             hintStyle: GoogleFonts.lato(
                               fontSize: 12,
                               color: Colors.grey.shade400,
@@ -1325,12 +1193,12 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                         height: 44,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
-                          color: _selectedStatus != 'All'
+                          color: _selectedType != 'All'
                               ? AppTheme.primaryDarkBlue
                               : Colors.white,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: _selectedStatus != 'All'
+                            color: _selectedType != 'All'
                                 ? AppTheme.primaryDarkBlue
                                 : Colors.grey.shade200,
                           ),
@@ -1347,7 +1215,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                             Icon(
                               Icons.filter_list,
                               size: 16,
-                              color: _selectedStatus != 'All'
+                              color: _selectedType != 'All'
                                   ? Colors.white
                                   : AppTheme.subtitleGray,
                             ),
@@ -1357,7 +1225,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                               style: GoogleFonts.lato(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: _selectedStatus != 'All'
+                                color: _selectedType != 'All'
                                     ? Colors.white
                                     : Colors.black87,
                               ),
@@ -1372,131 +1240,67 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
             ),
         ],
       ),
-      // Bottom Navigation Bar
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentNavIndex,
-          onTap: _onNavBarTapped,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: AppTheme.primaryDarkBlue,
-          unselectedItemColor: AppTheme.subtitleGray,
-          selectedLabelStyle: GoogleFonts.lato(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
-          unselectedLabelStyle: GoogleFonts.lato(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.receipt_long),
-              label: 'Invoices',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.people),
-              label: 'Customers',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard),
-              label: 'Dashboard',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDrawerItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-    bool isSelected = false,
-    bool isDestructive = false,
-  }) {
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: isDestructive
-            ? Colors.red
-            : isSelected
-                ? AppTheme.primaryDarkBlue
-                : AppTheme.subtitleGray,
-        size: 22,
-      ),
-      title: Text(
-        title,
-        style: GoogleFonts.lato(
-          fontSize: 14,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-          color: isDestructive
-              ? Colors.red
-              : isSelected
-                  ? AppTheme.primaryDarkBlue
-                  : Colors.black87,
-        ),
-      ),
-      onTap: onTap,
-      selected: isSelected,
-      selectedTileColor: AppTheme.lightBlueBg,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-    );
-  }
-
-  void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Perform logout actions
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Logged out successfully'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
-            child: const Text('Logout', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
     );
   }
 }
 
-// ==================== INVOICE DETAIL SCREEN ====================
-class InvoiceDetailScreen extends StatelessWidget {
-  final Map<String, dynamic> invoice;
+// ==================== CUSTOMER DETAIL SCREEN ====================
+class CustomerDetailScreen extends StatelessWidget {
+  final Map<String, dynamic> customer;
 
-  const InvoiceDetailScreen({super.key, required this.invoice});
+  const CustomerDetailScreen({super.key, required this.customer});
+
+  void _showMenuOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(Icons.edit, color: AppTheme.primaryDarkBlue),
+              title: const Text('Edit Customer'),
+              onTap: () {
+                Navigator.pop(context);
+                // Navigate to edit customer screen
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text('Delete Customer',
+                  style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(context);
+                _showDeleteConfirmation(context);
+              },
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
 
   void _showDeleteConfirmation(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Invoice'),
+        title: const Text('Delete Customer'),
         content: const Text(
-            'Are you sure you want to delete this invoice? This action cannot be undone.'),
+            'Are you sure you want to delete this customer? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -1507,11 +1311,11 @@ class InvoiceDetailScreen extends StatelessWidget {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Invoice deleted successfully'),
+                  content: Text('Customer deleted successfully'),
                   duration: Duration(seconds: 2),
                 ),
               );
-              Navigator.pop(context);
+              Navigator.pop(context); // Go back to customer list
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
@@ -1522,6 +1326,12 @@ class InvoiceDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final outstanding = customer['outstanding'] as double;
+    final totalReceivable = customer['totalReceivable'] as double;
+    final paymentPercentage = totalReceivable > 0
+        ? ((totalReceivable - outstanding) / totalReceivable) * 100
+        : 0.0;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
@@ -1533,7 +1343,7 @@ class InvoiceDetailScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Invoice Details',
+          'Customer Details',
           style: GoogleFonts.lato(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -1541,10 +1351,13 @@ class InvoiceDetailScreen extends StatelessWidget {
           ),
         ),
         actions: [
+          // 3-dot menu icon instead of edit icon
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: AppTheme.primaryDarkBlue),
             onSelected: (value) {
-              if (value == 'delete') {
+              if (value == 'edit') {
+                // Navigate to edit customer screen
+              } else if (value == 'delete') {
                 _showDeleteConfirmation(context);
               }
             },
@@ -1555,7 +1368,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                   children: [
                     Icon(Icons.edit, size: 20, color: AppTheme.primaryDarkBlue),
                     SizedBox(width: 12),
-                    Text('Edit Invoice'),
+                    Text('Edit Customer'),
                   ],
                 ),
               ),
@@ -1565,7 +1378,8 @@ class InvoiceDetailScreen extends StatelessWidget {
                   children: [
                     Icon(Icons.delete, size: 20, color: Colors.red),
                     SizedBox(width: 12),
-                    Text('Delete Invoice', style: TextStyle(color: Colors.red)),
+                    Text('Delete Customer',
+                        style: TextStyle(color: Colors.red)),
                   ],
                 ),
               ),
@@ -1578,7 +1392,7 @@ class InvoiceDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Invoice Header Card
+            // Customer Header Card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -1604,7 +1418,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              invoice['customer'],
+                              customer['name'],
                               style: GoogleFonts.lato(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -1613,7 +1427,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              invoice['id'],
+                              customer['id'],
                               style: GoogleFonts.lato(
                                 fontSize: 11,
                                 color: Colors.white70,
@@ -1630,7 +1444,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
-                          invoice['status'],
+                          customer['status'],
                           style: GoogleFonts.lato(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -1648,14 +1462,14 @@ class InvoiceDetailScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Amount',
+                              'Total Receivable',
                               style: GoogleFonts.lato(
                                 fontSize: 10,
                                 color: Colors.white70,
                               ),
                             ),
                             Text(
-                              '₹${NumberFormat('#,##0').format(invoice['amount'])}',
+                              '₹${NumberFormat('#,##0').format(totalReceivable)}',
                               style: GoogleFonts.lato(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -1670,19 +1484,20 @@ class InvoiceDetailScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              'Due Date',
+                              'Outstanding',
                               style: GoogleFonts.lato(
                                 fontSize: 10,
                                 color: Colors.white70,
                               ),
                             ),
                             Text(
-                              DateFormat('dd MMM yyyy')
-                                  .format(invoice['dueDate']),
+                              '₹${NumberFormat('#,##0').format(outstanding)}',
                               style: GoogleFonts.lato(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: outstanding > 0
+                                    ? const Color(0xFFFBBF24)
+                                    : const Color(0xFF10B981),
                               ),
                             ),
                           ],
@@ -1690,13 +1505,31 @@ class InvoiceDetailScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: paymentPercentage / 100,
+                      backgroundColor: Colors.white.withOpacity(0.3),
+                      color: Colors.white,
+                      minHeight: 4,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${paymentPercentage.toStringAsFixed(1)}% paid',
+                    style: GoogleFonts.lato(
+                      fontSize: 10,
+                      color: Colors.white70,
+                    ),
+                  ),
                 ],
               ),
             ),
 
             const SizedBox(height: 12),
 
-            // Customer Information
+            // Contact Information
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -1709,7 +1542,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(12),
                     child: Text(
-                      'Customer Information',
+                      'Contact Information',
                       style: GoogleFonts.lato(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -1723,16 +1556,13 @@ class InvoiceDetailScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         _buildInfoRow(
-                            Icons.email_outlined, 'Email', invoice['email']),
+                            Icons.email_outlined, 'Email', customer['email']),
                         const SizedBox(height: 10),
                         _buildInfoRow(
-                            Icons.phone_outlined, 'Phone', invoice['phone']),
+                            Icons.phone_outlined, 'Phone', customer['phone']),
                         const SizedBox(height: 10),
                         _buildInfoRow(Icons.location_on_outlined, 'Address',
-                            invoice['address']),
-                        const SizedBox(height: 10),
-                        _buildInfoRow(Icons.request_quote_outlined,
-                            'GST Number', invoice['gst'] ?? 'Not provided'),
+                            customer['address']),
                       ],
                     ),
                   ),
@@ -1742,7 +1572,7 @@ class InvoiceDetailScreen extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // Invoice Details
+            // Business Information
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -1755,7 +1585,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(12),
                     child: Text(
-                      'Invoice Details',
+                      'Business Information',
                       style: GoogleFonts.lato(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -1768,17 +1598,16 @@ class InvoiceDetailScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(12),
                     child: Column(
                       children: [
-                        _buildInfoRow(Icons.calendar_today, 'Invoice Date',
-                            DateFormat('dd MMM yyyy').format(invoice['date'])),
+                        _buildInfoRow(Icons.business_outlined, 'GST Number',
+                            customer['gst'] ?? 'Not provided'),
                         const SizedBox(height: 10),
                         _buildInfoRow(
-                            Icons.event,
-                            'Due Date',
-                            DateFormat('dd MMM yyyy')
-                                .format(invoice['dueDate'])),
+                            Icons.credit_card_outlined,
+                            'Credit Limit',
+                            '₹${NumberFormat('#,##0').format(customer['creditLimit'])}'),
                         const SizedBox(height: 10),
-                        _buildInfoRow(Icons.receipt, 'Total Items',
-                            '${invoice['items']} items'),
+                        _buildInfoRow(Icons.payment_outlined, 'Payment Terms',
+                            customer['paymentTerms']),
                       ],
                     ),
                   ),
@@ -1788,43 +1617,119 @@ class InvoiceDetailScreen extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // Notes
-            if (invoice['notes'] != null &&
-                invoice['notes'].toString().isNotEmpty)
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Text(
-                        'Notes',
-                        style: GoogleFonts.lato(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryDarkBlue,
-                        ),
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Text(
-                        invoice['notes'],
-                        style: GoogleFonts.lato(
-                          fontSize: 12,
-                          color: AppTheme.subtitleGray,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+            // Invoice Summary
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade200),
               ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(
+                      'Invoice Summary',
+                      style: GoogleFonts.lato(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryDarkBlue,
+                      ),
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _buildSummaryItem(
+                            'Total',
+                            '${customer['totalInvoices']}',
+                            Icons.receipt_long,
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 30,
+                          color: Colors.grey.shade200,
+                        ),
+                        Expanded(
+                          child: _buildSummaryItem(
+                            'Paid',
+                            '${customer['paidInvoices']}',
+                            Icons.check_circle,
+                            color: const Color(0xFF10B981),
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 30,
+                          color: Colors.grey.shade200,
+                        ),
+                        Expanded(
+                          child: _buildSummaryItem(
+                            'Overdue',
+                            '${customer['overdueInvoices']}',
+                            Icons.warning_amber,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Recent Activity
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(
+                      'Recent Activity',
+                      style: GoogleFonts.lato(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryDarkBlue,
+                      ),
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      children: [
+                        _buildActivityRow(
+                          'Last Invoice',
+                          DateFormat('dd MMM yyyy')
+                              .format(customer['lastInvoiceDate']),
+                          Icons.receipt,
+                        ),
+                        const SizedBox(height: 10),
+                        _buildActivityRow(
+                          'Customer Since',
+                          DateFormat('dd MMM yyyy')
+                              .format(customer['customerSince']),
+                          Icons.person_add,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
             const SizedBox(height: 60),
           ],
@@ -1848,11 +1753,11 @@ class InvoiceDetailScreen extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    // Share invoice
+                    // Navigate to create invoice for this customer
                   },
-                  icon: const Icon(Icons.share, size: 16),
+                  icon: const Icon(Icons.receipt, size: 16),
                   label: Text(
-                    'Share',
+                    'Create Invoice',
                     style: GoogleFonts.lato(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -1871,7 +1776,7 @@ class InvoiceDetailScreen extends StatelessWidget {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    // Record payment
+                    // Navigate to record payment
                   },
                   icon: const Icon(
                     Icons.payment,
@@ -1924,6 +1829,69 @@ class InvoiceDetailScreen extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSummaryItem(String label, String value, IconData icon,
+      {Color? color}) {
+    return Column(
+      children: [
+        Icon(icon, size: 16, color: color ?? AppTheme.subtitleGray),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: GoogleFonts.lato(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        Text(
+          label,
+          style: GoogleFonts.lato(
+            fontSize: 9,
+            color: AppTheme.subtitleGray,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActivityRow(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: AppTheme.lightBlueBg,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 14, color: AppTheme.primaryDarkBlue),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.lato(
+                  fontSize: 10,
+                  color: AppTheme.subtitleGray,
+                ),
+              ),
+              Text(
+                value,
+                style: GoogleFonts.lato(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                   color: Colors.black87,
                 ),
               ),
