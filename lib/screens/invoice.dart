@@ -3,8 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import 'create_invoice_screen.dart';
-import 'customer_screen.dart'; // Import CustomerScreen
-import 'dashboard_screen.dart'; // Import DashboardScreen (you may need to create this)
+import 'customer_screen.dart';
 
 // ==================== MAIN INVOICE LIST SCREEN ====================
 class InvoiceListScreen extends StatefulWidget {
@@ -338,40 +337,6 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
     }
   }
 
-  // Hamburger menu items
-  void _showHamburgerMenu() {
-    Scaffold.of(context).openDrawer();
-  }
-
-  // Bottom navigation current index
-  int _currentNavIndex = 0;
-
-  void _onNavBarTapped(int index) {
-    setState(() {
-      _currentNavIndex = index;
-    });
-
-    // Navigate based on index
-    switch (index) {
-      case 0:
-        // Already on Invoices
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const CustomerScreen()),
-        );
-        break;
-      case 2:
-        // Navigate to Dashboard (create if needed)
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => const DashboardScreen()),
-        // );
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final totalInvoices = _filteredInvoices.length;
@@ -395,160 +360,13 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      // Add Drawer for Hamburger Menu
-      drawer: Drawer(
-        child: Container(
-          color: Colors.white,
-          child: Column(
-            children: [
-              // Drawer Header
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppTheme.primaryDarkBlue,
-                      AppTheme.primaryDarkBlue.withOpacity(0.8),
-                    ],
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.receipt_long,
-                        size: 28,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Invoice Manager',
-                      style: GoogleFonts.lato(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Manage your invoices easily',
-                      style: GoogleFonts.lato(
-                        fontSize: 12,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Drawer Items
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    _buildDrawerItem(
-                      icon: Icons.dashboard,
-                      title: 'Dashboard',
-                      onTap: () {
-                        Navigator.pop(context);
-                        // Navigate to dashboard
-                      },
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.receipt_long,
-                      title: 'Invoices',
-                      onTap: () {
-                        Navigator.pop(context);
-                        // Already on invoices
-                      },
-                      isSelected: true,
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.people,
-                      title: 'Customers',
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const CustomerScreen()),
-                        );
-                      },
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.payment,
-                      title: 'Payments',
-                      onTap: () {
-                        Navigator.pop(context);
-                        // Navigate to payments screen
-                      },
-                    ),
-                    const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                    _buildDrawerItem(
-                      icon: Icons.settings,
-                      title: 'Settings',
-                      onTap: () {
-                        Navigator.pop(context);
-                        // Navigate to settings
-                      },
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.help_outline,
-                      title: 'Help & Support',
-                      onTap: () {
-                        Navigator.pop(context);
-                        // Navigate to help
-                      },
-                    ),
-                    const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                    _buildDrawerItem(
-                      icon: Icons.logout,
-                      title: 'Logout',
-                      onTap: () {
-                        Navigator.pop(context);
-                        _showLogoutDialog();
-                      },
-                      isDestructive: true,
-                    ),
-                  ],
-                ),
-              ),
-              // Drawer Footer
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'Version 1.0.0',
-                  style: GoogleFonts.lato(
-                    fontSize: 11,
-                    color: AppTheme.subtitleGray,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu,
-                color: AppTheme.primaryDarkBlue, size: 24),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios,
+              color: AppTheme.primaryDarkBlue, size: 20),
+          onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Invoices',
@@ -558,6 +376,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
             color: AppTheme.primaryDarkBlue,
           ),
         ),
+        // No actions - matching customer_screen
       ),
       body: Stack(
         children: [
@@ -1370,114 +1189,6 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                 ),
               ),
             ),
-        ],
-      ),
-      // Bottom Navigation Bar
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentNavIndex,
-          onTap: _onNavBarTapped,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: AppTheme.primaryDarkBlue,
-          unselectedItemColor: AppTheme.subtitleGray,
-          selectedLabelStyle: GoogleFonts.lato(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
-          unselectedLabelStyle: GoogleFonts.lato(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.receipt_long),
-              label: 'Invoices',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.people),
-              label: 'Customers',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard),
-              label: 'Dashboard',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDrawerItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-    bool isSelected = false,
-    bool isDestructive = false,
-  }) {
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: isDestructive
-            ? Colors.red
-            : isSelected
-                ? AppTheme.primaryDarkBlue
-                : AppTheme.subtitleGray,
-        size: 22,
-      ),
-      title: Text(
-        title,
-        style: GoogleFonts.lato(
-          fontSize: 14,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-          color: isDestructive
-              ? Colors.red
-              : isSelected
-                  ? AppTheme.primaryDarkBlue
-                  : Colors.black87,
-        ),
-      ),
-      onTap: onTap,
-      selected: isSelected,
-      selectedTileColor: AppTheme.lightBlueBg,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-    );
-  }
-
-  void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Perform logout actions
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Logged out successfully'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
-            child: const Text('Logout', style: TextStyle(color: Colors.red)),
-          ),
         ],
       ),
     );

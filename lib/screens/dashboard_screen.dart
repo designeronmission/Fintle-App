@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../theme/app_theme.dart';
 import 'create_invoice_screen.dart';
 import 'customer_screen.dart';
@@ -11,6 +12,8 @@ import 'invoice.dart';
 import 'signin_screen.dart';
 import 'item_screen.dart';
 import 'hsn_sac_management_screen.dart';
+import 'account_master_screen.dart';
+import 'journal_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -27,12 +30,90 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? profileImagePath;
   final TextEditingController _searchController = TextEditingController();
   int _selectedBottomNavIndex = 0;
+  String _selectedChartPeriod = 'Monthly'; // Monthly, Quarterly, Yearly
 
   // Dropdown states
   bool _isItemExpanded = false;
   bool _isPurchaseExpanded = false;
   bool _isSalesExpanded = false;
   bool _isAccountExpanded = false;
+
+  // Sample financial data for charts
+  final Map<String, List<double>> _salesData = {
+    'Monthly': [
+      12500,
+      18900,
+      15200,
+      23400,
+      18700,
+      21500,
+      25600,
+      28900,
+      31200,
+      29800,
+      34500,
+      37800
+    ],
+    'Quarterly': [46600, 63600, 85700, 102100],
+    'Yearly': [125000, 189000, 234000, 298000]
+  };
+
+  final Map<String, List<double>> _purchaseData = {
+    'Monthly': [
+      8500,
+      9200,
+      7800,
+      14500,
+      12300,
+      15600,
+      18900,
+      19800,
+      21200,
+      18700,
+      23400,
+      25600
+    ],
+    'Quarterly': [25500, 42400, 56300, 67700],
+    'Yearly': [85000, 120000, 185000, 225000]
+  };
+
+  final Map<String, List<double>> _expenseData = {
+    'Monthly': [
+      4200,
+      3800,
+      5100,
+      6200,
+      5800,
+      7100,
+      6800,
+      7900,
+      7200,
+      6500,
+      8400,
+      9100
+    ],
+    'Quarterly': [13100, 19100, 20900, 24000],
+    'Yearly': [45000, 68000, 89000, 112000]
+  };
+
+  final Map<String, List<String>> _periodLabels = {
+    'Monthly': [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ],
+    'Quarterly': ['Q1', 'Q2', 'Q3', 'Q4'],
+    'Yearly': ['2022', '2023', '2024', '2025']
+  };
 
   final List<Map<String, dynamic>> alerts = [
     {
@@ -295,6 +376,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
           MaterialPageRoute(builder: (context) => const BillListScreen()),
         );
         break;
+      case 'HSN & SAC Code':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HsnSacManagementScreen(),
+          ),
+        );
+        break;
+      case 'Item':
+        // Navigate to Item screen (already on Item screen via bottom nav)
+        setState(() {
+          _selectedBottomNavIndex = 2;
+        });
+        break;
+      case 'Categories':
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Categories screen coming soon'),
+            duration: Duration(seconds: 1),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        break;
+      case 'Supplier':
+      case 'Supplier Statement':
+      case 'Purchase Order':
+      case 'Purchase Bill':
+      case 'Enquiry':
+      case 'Estimate':
+      case 'Account Master':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const AccountMasterScreen(),
+          ),
+        );
+        break;
+      case 'Journals':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const JournalListScreen()),
+        );
+        break;
+      case 'Vouchers':
+      case 'Bank Payments':
+      case 'General Ledger':
+      case 'Trial Balance':
+      case 'Balance Sheets':
+      case 'Settings':
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$screenName screen coming soon'),
+            duration: const Duration(seconds: 1),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -304,6 +442,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         );
     }
+  }
+
+  // Calculate totals for current period
+  double getTotalSales() {
+    List<double> data = _salesData[_selectedChartPeriod]!;
+    return data.fold(0, (sum, val) => sum + val);
+  }
+
+  double getTotalPurchases() {
+    List<double> data = _purchaseData[_selectedChartPeriod]!;
+    return data.fold(0, (sum, val) => sum + val);
+  }
+
+  double getTotalExpenses() {
+    List<double> data = _expenseData[_selectedChartPeriod]!;
+    return data.fold(0, (sum, val) => sum + val);
+  }
+
+  double getProfit() {
+    return getTotalSales() - getTotalPurchases() - getTotalExpenses();
+  }
+
+  double getProfitMargin() {
+    double totalSales = getTotalSales();
+    if (totalSales == 0) return 0;
+    return (getProfit() / totalSales) * 100;
   }
 
   @override
@@ -496,6 +660,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildDashboardContent() {
+    List<double> currentSales = _salesData[_selectedChartPeriod]!;
+    List<double> currentPurchases = _purchaseData[_selectedChartPeriod]!;
+    List<String> currentLabels = _periodLabels[_selectedChartPeriod]!;
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
@@ -578,7 +746,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           const SizedBox(height: 24),
 
-          // Alerts Section - Scrollable horizontally
+          // Alerts Section
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
@@ -813,6 +981,190 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           const SizedBox(height: 24),
 
+          // KPI Cards
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildKPICard(
+                    'Total Sales',
+                    '₹${getTotalSales().toStringAsFixed(0)}',
+                    Icons.trending_up,
+                    const Color(0xFF10B981),
+                    '+12.5%',
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildKPICard(
+                    'Total Purchases',
+                    '₹${getTotalPurchases().toStringAsFixed(0)}',
+                    Icons.shopping_cart,
+                    const Color(0xFFF59E0B),
+                    '+8.3%',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildKPICard(
+                    'Net Profit',
+                    '₹${getProfit().toStringAsFixed(0)}',
+                    Icons.account_balance,
+                    const Color(0xFF3B82F6),
+                    '+${getProfitMargin().toStringAsFixed(1)}%',
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildKPICard(
+                    'Expenses',
+                    '₹${getTotalExpenses().toStringAsFixed(0)}',
+                    Icons.money_off,
+                    const Color(0xFFEF4444),
+                    '+5.2%',
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Expense Chart
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Expense Breakdown',
+                  style: GoogleFonts.lato(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryDarkBlue,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 200,
+                  child: PieChart(
+                    PieChartData(
+                      sections: [
+                        PieChartSectionData(
+                          value: 35,
+                          title: 'Rent\n35%',
+                          color: const Color(0xFFEF4444),
+                          radius: 60,
+                          titleStyle: GoogleFonts.lato(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        PieChartSectionData(
+                          value: 25,
+                          title: 'Salary\n25%',
+                          color: const Color(0xFF3B82F6),
+                          radius: 60,
+                          titleStyle: GoogleFonts.lato(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        PieChartSectionData(
+                          value: 20,
+                          title: 'Utilities\n20%',
+                          color: const Color(0xFF10B981),
+                          radius: 60,
+                          titleStyle: GoogleFonts.lato(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        PieChartSectionData(
+                          value: 20,
+                          title: 'Others\n20%',
+                          color: const Color(0xFFF59E0B),
+                          radius: 60,
+                          titleStyle: GoogleFonts.lato(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                      centerSpaceRadius: 40,
+                      sectionsSpace: 2,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Analysis Cards
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Key Insights',
+                  style: GoogleFonts.lato(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryDarkBlue,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildInsightCard(
+                  'Revenue Growth',
+                  '+23.5% vs last period',
+                  Icons.arrow_upward,
+                  const Color(0xFF10B981),
+                  'Your revenue has increased significantly compared to previous period.',
+                ),
+                const SizedBox(height: 8),
+                _buildInsightCard(
+                  'Profit Margin',
+                  '${getProfitMargin().toStringAsFixed(1)}%',
+                  Icons.trending_up,
+                  const Color(0xFF3B82F6),
+                  'Maintain healthy profit margins by optimizing costs.',
+                ),
+                const SizedBox(height: 8),
+                _buildInsightCard(
+                  'Top Performing Month',
+                  'Decr (₹37,800)',
+                  Icons.emoji_events,
+                  const Color(0xFFF59E0B),
+                  'Highest sales recorded in December. Plan promotions accordingly.',
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
           // Recent Activity
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -895,348 +1247,118 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildInvoicesScreen() {
-    return const InvoiceListScreen();
+  Widget _buildPeriodButton(String period) {
+    bool isSelected = _selectedChartPeriod == period;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedChartPeriod = period;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primaryDarkBlue : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          period,
+          style: GoogleFonts.lato(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.white : AppTheme.subtitleGray,
+          ),
+        ),
+      ),
+    );
   }
 
-  Widget _buildMoreScreen() {
-    return ListView(
-      padding: const EdgeInsets.all(20),
+  Widget _buildLegendDot(Color color, String label) {
+    return Row(
       children: [
-        _buildMoreMenuItem(Icons.bar_chart_outlined, 'Reports', () {}),
-        _buildMoreMenuItem(Icons.settings_outlined, 'Settings', () {}),
-        _buildMoreMenuItem(Icons.help_outline, 'Help & Support', () {}),
-        _buildMoreMenuItem(Icons.info_outline, 'About', () {}),
-        const Divider(),
-        _buildMoreMenuItem(Icons.receipt_outlined, 'Bills', () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const BillListScreen()),
-          );
-        }),
-        _buildMoreMenuItem(Icons.logout, 'Logout', _logout,
-            isDestructive: true),
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: GoogleFonts.lato(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildMoreMenuItem(IconData icon, String title, VoidCallback onTap,
-      {bool isDestructive = false}) {
-    return ListTile(
-      leading: Icon(icon,
-          color: isDestructive ? Colors.red : AppTheme.primaryDarkBlue),
-      title: Text(
-        title,
-        style: GoogleFonts.lato(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: isDestructive ? Colors.red : Colors.black87,
-        ),
-      ),
-      trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
-      onTap: onTap,
-    );
-  }
-
-  Widget _buildStyledDrawer() {
-    return Drawer(
-      backgroundColor: Colors.white,
-      width: 280,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(20),
-          bottomRight: Radius.circular(20),
-        ),
+  Widget _buildKPICard(
+      String title, String value, IconData icon, Color color, String change) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with Profile
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(16, 50, 16, 16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppTheme.primaryDarkBlue,
-                  AppTheme.primaryDarkBlue.withOpacity(0.7),
-                ],
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, size: 18, color: color),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Profile Row - Pic, Name, Email, and Business Name on Right
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
                   children: [
-                    // Profile Picture with Upload Option
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: ClipOval(
-                          child: profileImagePath != null
-                              ? Image.file(
-                                  File(profileImagePath!),
-                                  width: 50,
-                                  height: 50,
-                                  fit: BoxFit.cover,
-                                )
-                              : const Icon(
-                                  Icons.person,
-                                  size: 28,
-                                  color: AppTheme.primaryDarkBlue,
-                                ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Name and Email Column
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            userName,
-                            style: GoogleFonts.lato(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            userEmail,
-                            style: GoogleFonts.lato(
-                              fontSize: 11,
-                              color: Colors.white70,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Business Name Badge on the Right
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.business,
-                              size: 12, color: Colors.white),
-                          const SizedBox(width: 4),
-                          Text(
-                            userBusiness.length > 10
-                                ? '${userBusiness.substring(0, 8)}...'
-                                : userBusiness,
-                            style: GoogleFonts.lato(
-                              fontSize: 10,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
+                    Icon(Icons.trending_up,
+                        size: 10, color: const Color(0xFF10B981)),
+                    const SizedBox(width: 2),
+                    Text(
+                      change,
+                      style: GoogleFonts.lato(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF10B981),
                       ),
                     ),
                   ],
                 ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            title,
+            style: GoogleFonts.lato(
+              fontSize: 11,
+              color: AppTheme.subtitleGray,
             ),
           ),
-
-          const Divider(height: 1, thickness: 1, color: Color(0xFFE8EAED)),
-
-          // Menu Items - Will expand to fill space
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              physics: const BouncingScrollPhysics(),
-              children: [
-                const SizedBox(height: 4),
-
-                // Dashboard
-                _buildMenuItem(
-                  icon: Icons.dashboard_outlined,
-                  title: 'Dashboard',
-                  onTap: () {
-                    Navigator.pop(context);
-                    setState(() {
-                      _selectedBottomNavIndex = 0;
-                    });
-                  },
-                ),
-
-                // Items Dropdown
-                _buildDropdownMenuItem(
-                  icon: Icons.inventory_2_outlined,
-                  title: 'Items',
-                  isExpanded: _isItemExpanded,
-                  onTap: () {
-                    setState(() {
-                      _isItemExpanded = !_isItemExpanded;
-                    });
-                  },
-                  children: [
-                    _buildSubMenuItem('Item', () => _navigateToScreen('Item')),
-                    _buildSubMenuItem('HSN & SAC Code',
-                        () => _navigateToScreen('HSN & SAC Code')),
-                    _buildSubMenuItem(
-                        'Categories', () => _navigateToScreen('Categories')),
-                  ],
-                ),
-
-                // Purchase Dropdown
-                _buildDropdownMenuItem(
-                  icon: Icons.shopping_cart_outlined,
-                  title: 'Purchase',
-                  isExpanded: _isPurchaseExpanded,
-                  onTap: () {
-                    setState(() {
-                      _isPurchaseExpanded = !_isPurchaseExpanded;
-                    });
-                  },
-                  children: [
-                    _buildSubMenuItem(
-                        'Supplier', () => _navigateToScreen('Supplier')),
-                    _buildSubMenuItem('Supplier Statement',
-                        () => _navigateToScreen('Supplier Statement')),
-                    _buildSubMenuItem('Purchase Order',
-                        () => _navigateToScreen('Purchase Order')),
-                    _buildSubMenuItem('Purchase Bill',
-                        () => _navigateToScreen('Purchase Bill')),
-                  ],
-                ),
-
-                // Sales Dropdown
-                _buildDropdownMenuItem(
-                  icon: Icons.trending_up_outlined,
-                  title: 'Sales',
-                  isExpanded: _isSalesExpanded,
-                  onTap: () {
-                    setState(() {
-                      _isSalesExpanded = !_isSalesExpanded;
-                    });
-                  },
-                  children: [
-                    _buildSubMenuItem(
-                        'Customer', () => _navigateToScreen('Customer')),
-                    _buildSubMenuItem(
-                        'Enquiry', () => _navigateToScreen('Enquiry')),
-                    _buildSubMenuItem(
-                        'Estimate', () => _navigateToScreen('Estimate')),
-                    _buildSubMenuItem('Create Invoice',
-                        () => _navigateToScreen('Create Invoice')),
-                  ],
-                ),
-
-                // Account Dropdown
-                _buildDropdownMenuItem(
-                  icon: Icons.account_balance_outlined,
-                  title: 'Account',
-                  isExpanded: _isAccountExpanded,
-                  onTap: () {
-                    setState(() {
-                      _isAccountExpanded = !_isAccountExpanded;
-                    });
-                  },
-                  children: [
-                    _buildSubMenuItem('Account Master',
-                        () => _navigateToScreen('Account Master')),
-                    _buildSubMenuItem(
-                        'Journals', () => _navigateToScreen('Journals')),
-                    _buildSubMenuItem(
-                        'Vouchers', () => _navigateToScreen('Vouchers')),
-                    _buildSubMenuItem('Bank Payments',
-                        () => _navigateToScreen('Bank Payments')),
-                    _buildSubMenuItem('General Ledger',
-                        () => _navigateToScreen('General Ledger')),
-                    _buildSubMenuItem('Trial Balance',
-                        () => _navigateToScreen('Trial Balance')),
-                    _buildSubMenuItem('Balance Sheets',
-                        () => _navigateToScreen('Balance Sheets')),
-                  ],
-                ),
-
-                // Invoices Menu Item
-                _buildMenuItem(
-                  icon: Icons.receipt_long_outlined,
-                  title: 'Invoices',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const InvoiceListScreen()),
-                    );
-                  },
-                ),
-
-                // Bills Menu Item
-                _buildMenuItem(
-                  icon: Icons.receipt_outlined,
-                  title: 'Bills',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const BillListScreen()),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 8),
-              ],
-            ),
-          ),
-
-          // Bottom Section with Settings and Logout
-          Container(
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(color: Colors.grey.shade200),
-              ),
-            ),
-            child: Column(
-              children: [
-                // Settings
-                _buildMenuItem(
-                  icon: Icons.settings_outlined,
-                  title: 'Settings',
-                  onTap: () => _navigateToScreen('Settings'),
-                ),
-
-                // Logout
-                _buildMenuItem(
-                  icon: Icons.logout_outlined,
-                  title: 'Logout',
-                  iconColor: const Color(0xFFD93025),
-                  titleColor: const Color(0xFFD93025),
-                  onTap: _logout,
-                ),
-
-                const SizedBox(height: 16),
-              ],
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: GoogleFonts.lato(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
             ),
           ),
         ],
@@ -1244,105 +1366,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    VoidCallback? onTap,
-    bool isActive = false,
-    Color? iconColor,
-    Color? titleColor,
-  }) {
+  Widget _buildInsightCard(String title, String value, IconData icon,
+      Color color, String description) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isActive ? AppTheme.lightBlueBg : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
       ),
-      child: ListTile(
-        leading: Icon(
-          icon,
-          color: iconColor ??
-              (isActive ? AppTheme.primaryDarkBlue : AppTheme.subtitleGray),
-          size: 20,
-        ),
-        title: Text(
-          title,
-          style: GoogleFonts.lato(
-            fontSize: 14,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            color: titleColor ??
-                (isActive ? AppTheme.primaryDarkBlue : Colors.black87),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 20, color: color),
           ),
-        ),
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-        dense: true,
-      ),
-    );
-  }
-
-  Widget _buildDropdownMenuItem({
-    required IconData icon,
-    required String title,
-    required bool isExpanded,
-    required VoidCallback onTap,
-    required List<Widget> children,
-  }) {
-    return Column(
-      children: [
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-          child: ListTile(
-            leading: Icon(
-              icon,
-              color: AppTheme.subtitleGray,
-              size: 20,
-            ),
-            title: Text(
-              title,
-              style: GoogleFonts.lato(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-            ),
-            trailing: Icon(
-              isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-              size: 18,
-              color: AppTheme.subtitleGray,
-            ),
-            onTap: onTap,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-            dense: true,
-          ),
-        ),
-        if (isExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 45),
+          const SizedBox(width: 12),
+          Expanded(
             child: Column(
-              children: children,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.lato(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        value,
+                        style: GoogleFonts.lato(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: color,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: GoogleFonts.lato(
+                    fontSize: 11,
+                    color: AppTheme.subtitleGray,
+                  ),
+                ),
+              ],
             ),
           ),
-      ],
-    );
-  }
-
-  Widget _buildSubMenuItem(String title, VoidCallback onTap) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 1),
-      child: ListTile(
-        title: Text(
-          title,
-          style: GoogleFonts.lato(
-            fontSize: 13,
-            fontWeight: FontWeight.w400,
-            color: AppTheme.subtitleGray,
-          ),
-        ),
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-        dense: true,
+        ],
       ),
     );
   }
@@ -1706,6 +1794,392 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 20),
         ],
+      ),
+    );
+  }
+
+  // ==================== DRAWER METHODS ====================
+
+  Widget _buildStyledDrawer() {
+    return Drawer(
+      backgroundColor: Colors.white,
+      width: 280,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Header with Profile
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(16, 50, 16, 16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppTheme.primaryDarkBlue,
+                  AppTheme.primaryDarkBlue.withOpacity(0.7),
+                ],
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: ClipOval(
+                          child: profileImagePath != null
+                              ? Image.file(
+                                  File(profileImagePath!),
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
+                                )
+                              : const Icon(
+                                  Icons.person,
+                                  size: 28,
+                                  color: AppTheme.primaryDarkBlue,
+                                ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            userName,
+                            style: GoogleFonts.lato(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            userEmail,
+                            style: GoogleFonts.lato(
+                              fontSize: 11,
+                              color: Colors.white70,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.business,
+                              size: 12, color: Colors.white),
+                          const SizedBox(width: 4),
+                          Text(
+                            userBusiness.length > 10
+                                ? '${userBusiness.substring(0, 8)}...'
+                                : userBusiness,
+                            style: GoogleFonts.lato(
+                              fontSize: 10,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const Divider(height: 1, thickness: 1, color: Color(0xFFE8EAED)),
+
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              physics: const BouncingScrollPhysics(),
+              children: [
+                const SizedBox(height: 4),
+                _buildMenuItem(
+                  icon: Icons.dashboard_outlined,
+                  title: 'Dashboard',
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _selectedBottomNavIndex = 0;
+                    });
+                  },
+                ),
+                _buildDropdownMenuItem(
+                  icon: Icons.inventory_2_outlined,
+                  title: 'Items',
+                  isExpanded: _isItemExpanded,
+                  onTap: () {
+                    setState(() {
+                      _isItemExpanded = !_isItemExpanded;
+                    });
+                  },
+                  children: [
+                    _buildSubMenuItem('Item', () => _navigateToScreen('Item')),
+                    _buildSubMenuItem('HSN & SAC Code',
+                        () => _navigateToScreen('HSN & SAC Code')),
+                    _buildSubMenuItem(
+                        'Categories', () => _navigateToScreen('Categories')),
+                  ],
+                ),
+                _buildDropdownMenuItem(
+                  icon: Icons.shopping_cart_outlined,
+                  title: 'Purchase',
+                  isExpanded: _isPurchaseExpanded,
+                  onTap: () {
+                    setState(() {
+                      _isPurchaseExpanded = !_isPurchaseExpanded;
+                    });
+                  },
+                  children: [
+                    _buildSubMenuItem(
+                        'Supplier', () => _navigateToScreen('Supplier')),
+                    _buildSubMenuItem('Supplier Statement',
+                        () => _navigateToScreen('Supplier Statement')),
+                    _buildSubMenuItem('Purchase Order',
+                        () => _navigateToScreen('Purchase Order')),
+                    _buildSubMenuItem('Purchase Bill',
+                        () => _navigateToScreen('Purchase Bill')),
+                  ],
+                ),
+                _buildDropdownMenuItem(
+                  icon: Icons.trending_up_outlined,
+                  title: 'Sales',
+                  isExpanded: _isSalesExpanded,
+                  onTap: () {
+                    setState(() {
+                      _isSalesExpanded = !_isSalesExpanded;
+                    });
+                  },
+                  children: [
+                    _buildSubMenuItem(
+                        'Customer', () => _navigateToScreen('Customer')),
+                    _buildSubMenuItem(
+                        'Enquiry', () => _navigateToScreen('Enquiry')),
+                    _buildSubMenuItem(
+                        'Estimate', () => _navigateToScreen('Estimate')),
+                    _buildSubMenuItem('Create Invoice',
+                        () => _navigateToScreen('Create Invoice')),
+                  ],
+                ),
+                _buildDropdownMenuItem(
+                  icon: Icons.account_balance_outlined,
+                  title: 'Account',
+                  isExpanded: _isAccountExpanded,
+                  onTap: () {
+                    setState(() {
+                      _isAccountExpanded = !_isAccountExpanded;
+                    });
+                  },
+                  children: [
+                    _buildSubMenuItem('Account Master',
+                        () => _navigateToScreen('Account Master')),
+                    _buildSubMenuItem(
+                        'Journals', () => _navigateToScreen('Journals')),
+                    _buildSubMenuItem(
+                        'Vouchers', () => _navigateToScreen('Vouchers')),
+                    _buildSubMenuItem('Bank Payments',
+                        () => _navigateToScreen('Bank Payments')),
+                    _buildSubMenuItem('General Ledger',
+                        () => _navigateToScreen('General Ledger')),
+                    _buildSubMenuItem('Trial Balance',
+                        () => _navigateToScreen('Trial Balance')),
+                    _buildSubMenuItem('Balance Sheets',
+                        () => _navigateToScreen('Balance Sheets')),
+                  ],
+                ),
+                _buildMenuItem(
+                  icon: Icons.receipt_long_outlined,
+                  title: 'Invoices',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const InvoiceListScreen()),
+                    );
+                  },
+                ),
+                _buildMenuItem(
+                  icon: Icons.receipt_outlined,
+                  title: 'Bills',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const BillListScreen()),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+
+          Container(
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: Colors.grey.shade200),
+              ),
+            ),
+            child: Column(
+              children: [
+                _buildMenuItem(
+                  icon: Icons.settings_outlined,
+                  title: 'Settings',
+                  onTap: () => _navigateToScreen('Settings'),
+                ),
+                _buildMenuItem(
+                  icon: Icons.logout_outlined,
+                  title: 'Logout',
+                  iconColor: const Color(0xFFD93025),
+                  titleColor: const Color(0xFFD93025),
+                  onTap: _logout,
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuItem({
+    required IconData icon,
+    required String title,
+    VoidCallback? onTap,
+    bool isActive = false,
+    Color? iconColor,
+    Color? titleColor,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      decoration: BoxDecoration(
+        color: isActive ? AppTheme.lightBlueBg : Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: ListTile(
+        leading: Icon(
+          icon,
+          color: iconColor ??
+              (isActive ? AppTheme.primaryDarkBlue : AppTheme.subtitleGray),
+          size: 20,
+        ),
+        title: Text(
+          title,
+          style: GoogleFonts.lato(
+            fontSize: 14,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+            color: titleColor ??
+                (isActive ? AppTheme.primaryDarkBlue : Colors.black87),
+          ),
+        ),
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+        dense: true,
+      ),
+    );
+  }
+
+  Widget _buildDropdownMenuItem({
+    required IconData icon,
+    required String title,
+    required bool isExpanded,
+    required VoidCallback onTap,
+    required List<Widget> children,
+  }) {
+    return Column(
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+          child: ListTile(
+            leading: Icon(
+              icon,
+              color: AppTheme.subtitleGray,
+              size: 20,
+            ),
+            title: Text(
+              title,
+              style: GoogleFonts.lato(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            trailing: Icon(
+              isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+              size: 18,
+              color: AppTheme.subtitleGray,
+            ),
+            onTap: onTap,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+            dense: true,
+          ),
+        ),
+        if (isExpanded)
+          Padding(
+            padding: const EdgeInsets.only(left: 45),
+            child: Column(
+              children: children,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSubMenuItem(String title, VoidCallback onTap) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 1),
+      child: ListTile(
+        title: Text(
+          title,
+          style: GoogleFonts.lato(
+            fontSize: 13,
+            fontWeight: FontWeight.w400,
+            color: AppTheme.subtitleGray,
+          ),
+        ),
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+        dense: true,
       ),
     );
   }
