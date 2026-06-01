@@ -14,6 +14,8 @@ import 'item_screen.dart';
 import 'hsn_sac_management_screen.dart';
 import 'account_master_screen.dart';
 import 'journal_screen.dart';
+import 'voucher_screen.dart';
+import 'bank-payment.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -420,7 +422,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         );
         break;
       case 'Vouchers':
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const VoucherListScreen()));
+        break;
       case 'Bank Payments':
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const BankPaymentScreen()));
+        break;
       case 'General Ledger':
       case 'Trial Balance':
       case 'Balance Sheets':

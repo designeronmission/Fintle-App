@@ -3,6 +3,25 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 
+// ==================== THEME COLORS ====================
+class AppColors {
+  static const Color background = Color(0xFFF5F7FA);
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color primary = Color(0xFF1E3A8A);
+  static const Color primaryDark = Color(0xFF1E40AF);
+  static const Color primaryLight = Color(0xFF3B82F6);
+  static const Color success = Color(0xFF10B981);
+  static const Color error = Color(0xFFEF4444);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color info = Color(0xFF8B5CF6);
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF475569);
+  static const Color textHint = Color(0xFF94A3B8);
+  static const Color border = Color(0xFFE2E8F0);
+  static const Color borderLight = Color(0xFFF1F5F9);
+  static const Color cardShadow = Color(0x0D000000);
+}
+
 // ==================== ACCOUNT MASTER SCREEN ====================
 class AccountMasterScreen extends StatefulWidget {
   const AccountMasterScreen({super.key});
@@ -15,22 +34,37 @@ class _AccountMasterScreenState extends State<AccountMasterScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   bool _isSearchActive = false;
+  final ScrollController _scrollController = ScrollController();
+  bool _isSearchSticky = false;
 
   List<AccountNode> _allAccounts = [];
   List<AccountNode> _filteredAccounts = [];
+  Set<String> _expandedSections = {};
 
   @override
   void initState() {
     super.initState();
     _initializeAccounts();
     _filteredAccounts = List.from(_allAccounts);
+    _expandedSections.addAll(_allAccounts.map((e) => e.id));
     _searchController.addListener(_filterAccounts);
+    _scrollController.addListener(_scrollListener);
   }
 
   @override
   void dispose() {
+    _searchController.removeListener(_filterAccounts);
+    _scrollController.removeListener(_scrollListener);
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollListener() {
+    const kpiHeight = 180.0;
+    setState(() {
+      _isSearchSticky = _scrollController.offset >= kpiHeight;
+    });
   }
 
   void _initializeAccounts() {
@@ -51,7 +85,7 @@ class _AccountMasterScreenState extends State<AccountMasterScreen> {
             type: AccountType.assets,
             openingBalance: 0,
             description: 'Short-term assets',
-            isExpanded: true,
+            isExpanded: false,
             children: [
               AccountNode(
                   id: '1.1.1',
@@ -91,7 +125,7 @@ class _AccountMasterScreenState extends State<AccountMasterScreen> {
             ],
           ),
           AccountNode(
-            id: '1.2',
+            id: '1.20',
             name: 'Fixed Assets',
             code: '1200',
             type: AccountType.assets,
@@ -228,7 +262,6 @@ class _AccountMasterScreenState extends State<AccountMasterScreen> {
             type: AccountType.income,
             openingBalance: 0,
             description: 'Income from operations',
-            isExpanded: true,
             children: [
               AccountNode(
                   id: '4.1.1',
@@ -387,9 +420,13 @@ class _AccountMasterScreenState extends State<AccountMasterScreen> {
     return filteredNodes;
   }
 
-  void _toggleNodeExpansion(AccountNode node) {
+  void _toggleExpansion(String id) {
     setState(() {
-      node.isExpanded = !node.isExpanded;
+      if (_expandedSections.contains(id)) {
+        _expandedSections.remove(id);
+      } else {
+        _expandedSections.add(id);
+      }
     });
   }
 
@@ -411,12 +448,7 @@ class _AccountMasterScreenState extends State<AccountMasterScreen> {
               existingAccount.openingBalance = account.openingBalance;
               existingAccount.description = account.description;
             });
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Account updated successfully!'),
-                  backgroundColor: Color(0xFF10B981),
-                  behavior: SnackBarBehavior.floating),
-            );
+            _showSnackBar('Account updated successfully!');
           } else {
             setState(() {
               AccountNode newNode = AccountNode(
@@ -434,28 +466,39 @@ class _AccountMasterScreenState extends State<AccountMasterScreen> {
                 _allAccounts.add(newNode);
               }
             });
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Account created successfully!'),
-                  backgroundColor: Color(0xFF10B981),
-                  behavior: SnackBarBehavior.floating),
-            );
+            _showSnackBar('Account created successfully!');
           }
         },
       ),
     );
   }
 
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final totalAccounts = _countAllAccounts(_filteredAccounts);
+    final totalAssets = _calculateTypeTotal(AccountType.assets);
+    final totalLiabilities = _calculateTypeTotal(AccountType.liabilities);
+    final totalEquity = _calculateTypeTotal(AccountType.equity);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios,
-              color: AppTheme.primaryDarkBlue, size: 20),
+              color: AppColors.primary, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -463,249 +506,553 @@ class _AccountMasterScreenState extends State<AccountMasterScreen> {
           style: GoogleFonts.lato(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: AppTheme.primaryDarkBlue),
+              color: AppColors.primary),
         ),
         actions: [
           IconButton(
             onPressed: () => _showEditAccountDialog(),
             icon: const Icon(Icons.add_circle_outline,
-                color: AppTheme.primaryDarkBlue, size: 24),
+                color: AppColors.primary, size: 24),
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          // KPI Summary Cards
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildSummaryCard(
-                      'Total Accounts',
-                      _countAllAccounts(_allAccounts).toString(),
-                      Icons.account_balance,
-                      AppTheme.primaryDarkBlue),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildSummaryCard(
-                      'Asset Total',
-                      '₹${NumberFormat('#,##0').format(_calculateTypeTotal(AccountType.assets))}',
-                      Icons.trending_up,
-                      const Color(0xFF10B981)),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildSummaryCard(
-                      'Liability Total',
-                      '₹${NumberFormat('#,##0').format(_calculateTypeTotal(AccountType.liabilities))}',
-                      Icons.trending_down,
-                      const Color(0xFFEF4444)),
-                ),
-              ],
-            ),
-          ),
-
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Container(
-              height: 46,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: TextField(
-                controller: _searchController,
-                style: GoogleFonts.lato(fontSize: 14),
-                decoration: InputDecoration(
-                  hintText: 'Search by account name, code or description...',
-                  hintStyle: GoogleFonts.lato(
-                      fontSize: 13, color: Colors.grey.shade400),
-                  prefixIcon: const Icon(Icons.search,
-                      size: 20, color: AppTheme.subtitleGray),
-                  suffixIcon: _isSearchActive
-                      ? IconButton(
-                          icon: const Icon(Icons.close,
-                              size: 18, color: AppTheme.subtitleGray),
-                          onPressed: () => _searchController.clear(),
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // Account List
-          Expanded(
-            child: _filteredAccounts.isEmpty
-                ? Center(
+          Column(
+            children: [
+              Expanded(
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (scrollInfo) {
+                    if (scrollInfo is ScrollUpdateNotification) {
+                      _scrollListener();
+                    }
+                    return false;
+                  },
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    physics: const BouncingScrollPhysics(),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.search_off,
-                            size: 64, color: Colors.grey.shade300),
-                        const SizedBox(height: 16),
-                        Text('No accounts found',
-                            style: GoogleFonts.lato(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.subtitleGray)),
-                        const SizedBox(height: 8),
-                        Text('Try adjusting your search',
-                            style: GoogleFonts.lato(
-                                fontSize: 13, color: AppTheme.subtitleGray)),
+                        // KPI Cards - Matching Customer Screen UI
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              // Total Accounts Card
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      AppColors.primary,
+                                      AppColors.primary.withOpacity(0.8),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Total Accounts',
+                                          style: GoogleFonts.lato(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white70,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          totalAccounts.toString(),
+                                          style: GoogleFonts.lato(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Chart of Accounts',
+                                          style: GoogleFonts.lato(
+                                            fontSize: 10,
+                                            color: Colors.white70,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Icon(
+                                        Icons.account_balance,
+                                        size: 24,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              // Two Cards Row
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                            color: Colors.grey.shade200),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                'Total Assets',
+                                                style: GoogleFonts.lato(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600,
+                                                  color:
+                                                      AppColors.textSecondary,
+                                                ),
+                                              ),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.all(4),
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.success
+                                                      .withOpacity(0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: const Icon(
+                                                  Icons.trending_up,
+                                                  size: 14,
+                                                  color: AppColors.success,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            '₹${NumberFormat('#,##0').format(totalAssets)}',
+                                            style: GoogleFonts.lato(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Total asset value',
+                                            style: GoogleFonts.lato(
+                                              fontSize: 10,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                            color: Colors.grey.shade200),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                'Total Liabilities',
+                                                style: GoogleFonts.lato(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600,
+                                                  color:
+                                                      AppColors.textSecondary,
+                                                ),
+                                              ),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.all(4),
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.error
+                                                      .withOpacity(0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: const Icon(
+                                                  Icons.trending_down,
+                                                  size: 14,
+                                                  color: AppColors.error,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            '₹${NumberFormat('#,##0').format(totalLiabilities)}',
+                                            style: GoogleFonts.lato(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Total liability value',
+                                            style: GoogleFonts.lato(
+                                              fontSize: 10,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              // Equity Card
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border:
+                                      Border.all(color: Colors.grey.shade200),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Total Equity',
+                                          style: GoogleFonts.lato(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '₹${NumberFormat('#,##0').format(totalEquity)}',
+                                          style: GoogleFonts.lato(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.textPrimary,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Owner\'s equity',
+                                          style: GoogleFonts.lato(
+                                            fontSize: 10,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.info.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(
+                                        Icons.trending_up,
+                                        size: 20,
+                                        color: AppColors.info,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Search Bar
+                        Container(
+                          color: AppColors.background,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Container(
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.border),
+                              ),
+                              child: TextField(
+                                controller: _searchController,
+                                style: GoogleFonts.lato(fontSize: 13),
+                                decoration: InputDecoration(
+                                  hintText:
+                                      'Search by account name, code or description...',
+                                  hintStyle: GoogleFonts.lato(
+                                      fontSize: 12, color: AppColors.textHint),
+                                  prefixIcon: const Icon(Icons.search,
+                                      size: 16, color: AppColors.textSecondary),
+                                  suffixIcon: _isSearchActive
+                                      ? IconButton(
+                                          icon: const Icon(Icons.close,
+                                              size: 16,
+                                              color: AppColors.textSecondary),
+                                          onPressed: () =>
+                                              _searchController.clear(),
+                                        )
+                                      : null,
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 12),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Account List
+                        if (_filteredAccounts.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.all(32),
+                            child: Center(
+                              child: Column(
+                                children: [
+                                  Icon(Icons.account_balance_outlined,
+                                      size: 60, color: Colors.grey.shade300),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'No accounts found',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Try adjusting your search',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 12,
+                                      color: AppColors.textHint,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        else
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: _filteredAccounts.length,
+                            itemBuilder: (context, index) {
+                              return _buildAccordionItem(
+                                  _filteredAccounts[index]);
+                            },
+                          ),
+                        const SizedBox(height: 80),
                       ],
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: _filteredAccounts.length,
-                    itemBuilder: (context, index) {
-                      return _buildAccountTreeTile(_filteredAccounts[index], 0);
-                    },
                   ),
+                ),
+              ),
+            ],
+          ),
+
+          // Sticky Search Bar
+          if (_isSearchSticky)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                color: AppColors.background,
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    style: GoogleFonts.lato(fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText:
+                          'Search by account name, code or description...',
+                      hintStyle: GoogleFonts.lato(
+                          fontSize: 12, color: AppColors.textHint),
+                      prefixIcon: const Icon(Icons.search,
+                          size: 16, color: AppColors.textSecondary),
+                      suffixIcon: _isSearchActive
+                          ? IconButton(
+                              icon: const Icon(Icons.close,
+                                  size: 16, color: AppColors.textSecondary),
+                              onPressed: () => _searchController.clear(),
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // Create Account Button - Professional Floating Button
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: SafeArea(
+              child: ElevatedButton.icon(
+                onPressed: () => _showEditAccountDialog(),
+                icon: const Icon(Icons.add, size: 18),
+                label: Text(
+                  'Create Account',
+                  style: GoogleFonts.lato(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 4,
+                  shadowColor: AppColors.primary.withOpacity(0.3),
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryCard(
-      String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 16, color: color),
-          ),
-          const SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              value,
-              style: GoogleFonts.lato(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            title,
-            style: GoogleFonts.lato(fontSize: 10, color: AppTheme.subtitleGray),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAccountTreeTile(AccountNode node, int depth) {
+  Widget _buildAccordionItem(AccountNode node) {
     final typeColor = _getAccountTypeColor(node.type);
     final hasChildren = node.children != null && node.children!.isNotEmpty;
-    final isParent = hasChildren;
+    final isExpanded = _expandedSections.contains(node.id);
+    final totalBalance = _calculateNodeTotal(node);
 
-    return Column(
-      children: [
-        Container(
-          margin: const EdgeInsets.only(bottom: 6),
-          decoration: BoxDecoration(
-            color:
-                isParent ? AppTheme.lightBlueBg.withOpacity(0.5) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-                color: isParent
-                    ? typeColor.withOpacity(0.3)
-                    : Colors.grey.shade200),
-          ),
-          child: Material(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        children: [
+          // Header
+          Material(
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
                 if (hasChildren) {
-                  _toggleNodeExpansion(node);
+                  _toggleExpansion(node.id);
                 } else {
                   _showEditAccountDialog(existingAccount: node);
                 }
               },
               borderRadius: BorderRadius.circular(12),
               child: Padding(
-                padding: EdgeInsets.only(
-                    left: 8 + (depth * 20.0), right: 12, top: 10, bottom: 10),
+                padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
-                    // Expand/Collapse Icon
-                    SizedBox(
-                      width: 24,
-                      child: hasChildren
-                          ? AnimatedRotation(
-                              turns: node.isExpanded ? 0.25 : 0,
-                              duration: const Duration(milliseconds: 200),
-                              child: const Icon(Icons.chevron_right,
-                                  size: 20, color: AppTheme.primaryDarkBlue),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-                    const SizedBox(width: 4),
-
-                    // Account Type Icon
+                    // Type Icon
                     Container(
-                      padding: const EdgeInsets.all(6),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: typeColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(_getAccountTypeIcon(node.type),
-                          size: 16, color: typeColor),
+                          size: 18, color: typeColor),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
 
-                    // Account Name and Code
+                    // Details
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            node.name,
-                            style: GoogleFonts.lato(
-                              fontSize: 13,
-                              fontWeight:
-                                  isParent ? FontWeight.bold : FontWeight.w600,
-                              color: isParent
-                                  ? AppTheme.primaryDarkBlue
-                                  : Colors.black87,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  node.name,
+                                  style: GoogleFonts.lato(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ),
+                              if (hasChildren)
+                                Icon(
+                                  isExpanded
+                                      ? Icons.expand_less
+                                      : Icons.expand_more,
+                                  color: AppColors.textSecondary,
+                                  size: 18,
+                                ),
+                            ],
                           ),
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 4),
                           Row(
                             children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
+                                  color: AppColors.borderLight,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
@@ -713,100 +1060,114 @@ class _AccountMasterScreenState extends State<AccountMasterScreen> {
                                   style: GoogleFonts.lato(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w600,
-                                      color: AppTheme.subtitleGray),
+                                      color: AppColors.textSecondary),
                                 ),
                               ),
-                              if (!isParent) ...[
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(
-                                    node.description,
-                                    style: GoogleFonts.lato(
-                                        fontSize: 10,
-                                        color: AppTheme.subtitleGray),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  node.description,
+                                  style: GoogleFonts.lato(
+                                      fontSize: 11, color: AppColors.textHint),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ],
+                              ),
                             ],
                           ),
                         ],
                       ),
                     ),
+
                     const SizedBox(width: 8),
 
-                    // Balance and Actions
+                    // Balance & Actions
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (!isParent)
-                          Text(
-                            '₹${NumberFormat('#,##0').format(node.openingBalance)}',
-                            style: GoogleFonts.lato(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: node.openingBalance >= 0
-                                  ? Colors.black87
-                                  : const Color(0xFFEF4444),
-                            ),
+                        Text(
+                          hasChildren
+                              ? '₹${NumberFormat('#,##0').format(totalBalance)}'
+                              : '₹${NumberFormat('#,##0').format(node.openingBalance)}',
+                          style: GoogleFonts.lato(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: totalBalance >= 0
+                                ? AppColors.textPrimary
+                                : AppColors.error,
                           ),
-                        const SizedBox(height: 3),
+                        ),
+                        const SizedBox(height: 6),
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (!isParent)
+                            if (hasChildren) ...[
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: typeColor.withOpacity(0.1),
+                                  color: AppColors.borderLight,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
-                                child: Text(
-                                  _getAccountTypeLabel(node.type),
-                                  style: GoogleFonts.lato(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w600,
-                                      color: typeColor),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.folder_outlined,
+                                        size: 10,
+                                        color: AppColors.textSecondary),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${_countChildren(node)}',
+                                      style: GoogleFonts.lato(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.textSecondary),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            if (isParent) ...[
-                              Text(
-                                '${_countChildren(node)}',
-                                style: GoogleFonts.lato(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.subtitleGray),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(Icons.folder_outlined,
-                                  size: 14, color: typeColor),
+                              const SizedBox(width: 6),
                             ],
-                            const SizedBox(width: 8),
-                            GestureDetector(
-                              onTap: () {
-                                if (isParent) {
-                                  _showEditAccountDialog(parentNode: node);
-                                }
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(6),
+                            // Professional Add Button for Parent
+                            if (hasChildren)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: isParent
-                                      ? typeColor.withOpacity(0.1)
-                                      : AppTheme.lightBlueBg,
-                                  borderRadius: BorderRadius.circular(8),
+                                  color: typeColor,
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
-                                child: Icon(
-                                  isParent ? Icons.add : Icons.edit_outlined,
-                                  size: 14,
-                                  color: isParent
-                                      ? typeColor
-                                      : AppTheme.primaryDarkBlue,
+                                child: InkWell(
+                                  onTap: () {
+                                    _showEditAccountDialog(parentNode: node);
+                                  },
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.add,
+                                          size: 12, color: Colors.white),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Add',
+                                        style: GoogleFonts.lato(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
+                              )
+                            else
+                              // Edit Icon for Leaf Nodes
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Icon(Icons.edit_outlined,
+                                    size: 14, color: AppColors.primary),
                               ),
-                            ),
                           ],
                         ),
                       ],
@@ -816,14 +1177,284 @@ class _AccountMasterScreenState extends State<AccountMasterScreen> {
               ),
             ),
           ),
-        ),
 
-        // Children
-        if (hasChildren && node.isExpanded)
-          ...node.children!
-              .map((child) => _buildAccountTreeTile(child, depth + 1)),
-      ],
+          // Children (Accordion Content)
+          if (hasChildren && isExpanded)
+            Container(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Column(
+                children: node.children!
+                    .map((child) => _buildChildAccountTile(child))
+                    .toList(),
+              ),
+            ),
+        ],
+      ),
     );
+  }
+
+  Widget _buildChildAccountTile(AccountNode node) {
+    final typeColor = _getAccountTypeColor(node.type);
+    final hasGrandChildren = node.children != null && node.children!.isNotEmpty;
+
+    if (hasGrandChildren) {
+      return Container(
+        margin: const EdgeInsets.only(top: 8),
+        decoration: BoxDecoration(
+          color: AppColors.borderLight,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          children: [
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _toggleExpansion(node.id),
+                borderRadius: BorderRadius.circular(10),
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: typeColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(_getAccountTypeIcon(node.type),
+                            size: 14, color: typeColor),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              node.name,
+                              style: GoogleFonts.lato(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 4, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surface,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    node.code,
+                                    style: GoogleFonts.lato(
+                                        fontSize: 9,
+                                        color: AppColors.textSecondary),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    node.description,
+                                    style: GoogleFonts.lato(
+                                        fontSize: 10,
+                                        color: AppColors.textHint),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '₹${NumberFormat('#,##0').format(_calculateNodeTotal(node))}',
+                            style: GoogleFonts.lato(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 4, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: typeColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  _getAccountTypeLabel(node.type),
+                                  style: GoogleFonts.lato(
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w600,
+                                      color: typeColor),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(Icons.chevron_right,
+                                  size: 14,
+                                  color: _expandedSections.contains(node.id)
+                                      ? typeColor
+                                      : AppColors.textHint),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            if (_expandedSections.contains(node.id))
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  children: node.children!
+                      .map((child) => _buildLeafAccountTile(child))
+                      .toList(),
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
+    return _buildLeafAccountTile(node);
+  }
+
+  Widget _buildLeafAccountTile(AccountNode node) {
+    final typeColor = _getAccountTypeColor(node.type);
+
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: InkWell(
+        onTap: () => _showEditAccountDialog(existingAccount: node),
+        borderRadius: BorderRadius.circular(10),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: typeColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(_getAccountTypeIcon(node.type),
+                  size: 14, color: typeColor),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    node.name,
+                    style: GoogleFonts.lato(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.borderLight,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          node.code,
+                          style: GoogleFonts.lato(
+                              fontSize: 9, color: AppColors.textSecondary),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          node.description,
+                          style: GoogleFonts.lato(
+                              fontSize: 9, color: AppColors.textHint),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '₹${NumberFormat('#,##0').format(node.openingBalance)}',
+                  style: GoogleFonts.lato(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: typeColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    _getAccountTypeLabel(node.type),
+                    style: GoogleFonts.lato(
+                        fontSize: 8,
+                        fontWeight: FontWeight.w600,
+                        color: typeColor),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Icon(Icons.edit_outlined,
+                  size: 12, color: AppColors.primary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  double _calculateNodeTotal(AccountNode node) {
+    if (node.children == null || node.children!.isEmpty) {
+      return node.openingBalance;
+    }
+    double total = 0;
+    for (var child in node.children!) {
+      total += _calculateNodeTotal(child);
+    }
+    return total;
   }
 
   int _countAllAccounts(List<AccountNode> nodes) {
@@ -873,15 +1504,15 @@ class _AccountMasterScreenState extends State<AccountMasterScreen> {
   Color _getAccountTypeColor(AccountType type) {
     switch (type) {
       case AccountType.assets:
-        return const Color(0xFF3B82F6);
+        return AppColors.primaryLight;
       case AccountType.liabilities:
-        return const Color(0xFFEF4444);
+        return AppColors.error;
       case AccountType.equity:
-        return const Color(0xFF8B5CF6);
+        return AppColors.info;
       case AccountType.income:
-        return const Color(0xFF10B981);
+        return AppColors.success;
       case AccountType.expenses:
-        return const Color(0xFFF59E0B);
+        return AppColors.warning;
     }
   }
 
@@ -1014,7 +1645,7 @@ class _EditAccountFormState extends State<EditAccountForm> {
       builder: (context, scrollController) {
         return Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Column(
@@ -1025,7 +1656,7 @@ class _EditAccountFormState extends State<EditAccountForm> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: AppColors.border,
                     borderRadius: BorderRadius.circular(2)),
               ),
 
@@ -1037,20 +1668,20 @@ class _EditAccountFormState extends State<EditAccountForm> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryDarkBlue.withOpacity(0.1),
+                        color: AppColors.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(Icons.account_balance,
-                          color: AppTheme.primaryDarkBlue, size: 24),
+                          color: AppColors.primary, size: 24),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        _isEditing ? 'Update Account' : 'New Account',
+                        _isEditing ? 'Update Account' : 'Create New Account',
                         style: GoogleFonts.lato(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryDarkBlue),
+                            color: AppColors.primary),
                       ),
                     ),
                     GestureDetector(
@@ -1058,18 +1689,18 @@ class _EditAccountFormState extends State<EditAccountForm> {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppTheme.lightBlueBg,
+                          color: AppColors.borderLight,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(Icons.close,
-                            size: 18, color: AppTheme.primaryDarkBlue),
+                            size: 18, color: AppColors.textSecondary),
                       ),
                     ),
                   ],
                 ),
               ),
 
-              const Divider(height: 1, color: Color(0xFFE2E8F0)),
+              const Divider(height: 1, color: AppColors.border),
 
               // Form Content
               Expanded(
@@ -1087,16 +1718,15 @@ class _EditAccountFormState extends State<EditAccountForm> {
                             padding: const EdgeInsets.all(12),
                             margin: const EdgeInsets.only(bottom: 20),
                             decoration: BoxDecoration(
-                              color: AppTheme.lightBlueBg,
+                              color: AppColors.primary.withOpacity(0.05),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                  color: AppTheme.primaryDarkBlue
-                                      .withOpacity(0.2)),
+                                  color: AppColors.primary.withOpacity(0.2)),
                             ),
                             child: Row(
                               children: [
                                 const Icon(Icons.subdirectory_arrow_right,
-                                    color: AppTheme.primaryDarkBlue, size: 20),
+                                    color: AppColors.primary, size: 20),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
@@ -1106,13 +1736,13 @@ class _EditAccountFormState extends State<EditAccountForm> {
                                       Text('Parent Account',
                                           style: GoogleFonts.lato(
                                               fontSize: 10,
-                                              color: AppTheme.subtitleGray)),
+                                              color: AppColors.textSecondary)),
                                       const SizedBox(height: 2),
                                       Text(widget.parentNode!.name,
                                           style: GoogleFonts.lato(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w600,
-                                              color: AppTheme.primaryDarkBlue)),
+                                              color: AppColors.primary)),
                                     ],
                                   ),
                                 ),
@@ -1120,15 +1750,14 @@ class _EditAccountFormState extends State<EditAccountForm> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: AppTheme.primaryDarkBlue
-                                        .withOpacity(0.1),
+                                    color: AppColors.primary.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(widget.parentNode!.code,
                                       style: GoogleFonts.lato(
                                           fontSize: 10,
                                           fontWeight: FontWeight.w600,
-                                          color: AppTheme.primaryDarkBlue)),
+                                          color: AppColors.primary)),
                                 ),
                               ],
                             ),
@@ -1140,7 +1769,7 @@ class _EditAccountFormState extends State<EditAccountForm> {
                         const SizedBox(height: 8),
                         _buildTextField(
                           controller: _accountNameController,
-                          hint: 'Enter account name',
+                          hint: 'e.g., Cash in Hand',
                           icon: Icons.account_balance_outlined,
                           validator: (v) => v == null || v.trim().isEmpty
                               ? 'Please enter account name'
@@ -1154,7 +1783,7 @@ class _EditAccountFormState extends State<EditAccountForm> {
                         const SizedBox(height: 8),
                         _buildTextField(
                           controller: _accountCodeController,
-                          hint: 'Enter account code',
+                          hint: 'e.g., 1101',
                           icon: Icons.qr_code,
                           keyboardType: TextInputType.number,
                           validator: (v) => v == null || v.trim().isEmpty
@@ -1169,9 +1798,9 @@ class _EditAccountFormState extends State<EditAccountForm> {
                         const SizedBox(height: 8),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.surface,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey.shade200),
+                            border: Border.all(color: AppColors.border),
                           ),
                           child: DropdownButtonHideUnderline(
                             child: DropdownButtonFormField<AccountType>(
@@ -1185,7 +1814,7 @@ class _EditAccountFormState extends State<EditAccountForm> {
                                     horizontal: 0, vertical: 14),
                               ),
                               icon: Icon(Icons.keyboard_arrow_down,
-                                  color: Colors.grey.shade600, size: 20),
+                                  color: AppColors.textSecondary, size: 20),
                               items: AccountType.values.map((type) {
                                 return DropdownMenuItem(
                                   value: type,
@@ -1197,7 +1826,7 @@ class _EditAccountFormState extends State<EditAccountForm> {
                                           color: _getTypeColor(type)
                                               .withOpacity(0.1),
                                           borderRadius:
-                                              BorderRadius.circular(6),
+                                              BorderRadius.circular(8),
                                         ),
                                         child: Icon(_getTypeIcon(type),
                                             size: 16,
@@ -1226,7 +1855,7 @@ class _EditAccountFormState extends State<EditAccountForm> {
                         const SizedBox(height: 8),
                         _buildTextField(
                           controller: _openingBalanceController,
-                          hint: 'Enter opening balance',
+                          hint: '0.00',
                           icon: Icons.account_balance_wallet_outlined,
                           keyboardType: TextInputType.number,
                           prefixText: '₹ ',
@@ -1235,11 +1864,11 @@ class _EditAccountFormState extends State<EditAccountForm> {
                         const SizedBox(height: 20),
 
                         // Description
-                        _buildSectionLabel('Description'),
+                        _buildSectionLabel('Description (Optional)'),
                         const SizedBox(height: 8),
                         _buildTextField(
                           controller: _descriptionController,
-                          hint: 'Enter description (optional)',
+                          hint: 'Add a description for this account',
                           icon: Icons.description_outlined,
                           maxLines: 3,
                         ),
@@ -1255,7 +1884,7 @@ class _EditAccountFormState extends State<EditAccountForm> {
                                 style: OutlinedButton.styleFrom(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 14),
-                                  side: BorderSide(color: Colors.grey.shade300),
+                                  side: BorderSide(color: AppColors.border),
                                   shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12)),
                                 ),
@@ -1263,7 +1892,7 @@ class _EditAccountFormState extends State<EditAccountForm> {
                                     style: GoogleFonts.lato(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
-                                        color: AppTheme.subtitleGray)),
+                                        color: AppColors.textSecondary)),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -1272,7 +1901,7 @@ class _EditAccountFormState extends State<EditAccountForm> {
                               child: ElevatedButton(
                                 onPressed: _saveAccount,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.primaryDarkBlue,
+                                  backgroundColor: AppColors.primary,
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 14),
                                   shape: RoundedRectangleBorder(
@@ -1286,7 +1915,7 @@ class _EditAccountFormState extends State<EditAccountForm> {
                                   style: GoogleFonts.lato(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.white),
+                                      color: AppColors.surface),
                                 ),
                               ),
                             ),
@@ -1308,12 +1937,12 @@ class _EditAccountFormState extends State<EditAccountForm> {
 
   Widget _buildSectionLabel(String label) {
     return Text(
-      label.toUpperCase(),
+      label,
       style: GoogleFonts.lato(
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: AppTheme.subtitleGray,
-          letterSpacing: 0.5),
+          color: AppColors.textSecondary,
+          letterSpacing: 0.3),
     );
   }
 
@@ -1333,29 +1962,28 @@ class _EditAccountFormState extends State<EditAccountForm> {
       style: GoogleFonts.lato(fontSize: 14),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: GoogleFonts.lato(fontSize: 14, color: Colors.grey.shade400),
+        hintStyle: GoogleFonts.lato(fontSize: 14, color: AppColors.textHint),
         prefixIcon: prefixText != null
             ? null
-            : Icon(icon, size: 18, color: Colors.grey.shade400),
+            : Icon(icon, size: 18, color: AppColors.textHint),
         prefixText: prefixText,
         prefixStyle: GoogleFonts.lato(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppTheme.primaryDarkBlue),
+            color: AppColors.primary),
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade200)),
+            borderSide: BorderSide(color: AppColors.border)),
         enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade200)),
+            borderSide: BorderSide(color: AppColors.border)),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide:
-                const BorderSide(color: AppTheme.primaryDarkBlue, width: 2)),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2)),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: AppColors.surface,
       ),
       validator: validator,
     );
@@ -1364,15 +1992,15 @@ class _EditAccountFormState extends State<EditAccountForm> {
   Color _getTypeColor(AccountType type) {
     switch (type) {
       case AccountType.assets:
-        return const Color(0xFF3B82F6);
+        return AppColors.primaryLight;
       case AccountType.liabilities:
-        return const Color(0xFFEF4444);
+        return AppColors.error;
       case AccountType.equity:
-        return const Color(0xFF8B5CF6);
+        return AppColors.info;
       case AccountType.income:
-        return const Color(0xFF10B981);
+        return AppColors.success;
       case AccountType.expenses:
-        return const Color(0xFFF59E0B);
+        return AppColors.warning;
     }
   }
 

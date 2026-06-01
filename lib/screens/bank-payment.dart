@@ -3,136 +3,176 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 
-// ==================== MAIN VOUCHER LIST SCREEN ==================== //
-
-class VoucherListScreen extends StatefulWidget {
-  const VoucherListScreen({super.key});
-
-  @override
-  State<VoucherListScreen> createState() => _VoucherListScreenState();
+// ==================== THEME COLORS ====================
+class AppColors {
+  static const Color background = Color(0xFFF5F7FA);
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color primary = Color(0xFF1E3A8A);
+  static const Color primaryDark = Color(0xFF1E40AF);
+  static const Color primaryLight = Color(0xFF3B82F6);
+  static const Color success = Color(0xFF10B981);
+  static const Color error = Color(0xFFEF4444);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color info = Color(0xFF8B5CF6);
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF475569);
+  static const Color textHint = Color(0xFF94A3B8);
+  static const Color border = Color(0xFFE2E8F0);
+  static const Color borderLight = Color(0xFFF1F5F9);
 }
 
-class _VoucherListScreenState extends State<VoucherListScreen> {
+// ==================== BANK PAYMENT MODEL ====================
+class BankPayment {
+  final String id;
+  final String paymentNo;
+  final DateTime paymentDate;
+  final String bankAccount;
+  final String recipient;
+  final String accountHead;
+  final String ledgerAccount;
+  final String description;
+  final double amount;
+  final String status;
+  final String transactionId;
+
+  BankPayment({
+    required this.id,
+    required this.paymentNo,
+    required this.paymentDate,
+    required this.bankAccount,
+    required this.recipient,
+    required this.accountHead,
+    required this.ledgerAccount,
+    required this.description,
+    required this.amount,
+    required this.status,
+    required this.transactionId,
+  });
+}
+
+// ==================== MAIN BANK PAYMENT LIST SCREEN ====================
+class BankPaymentScreen extends StatefulWidget {
+  const BankPaymentScreen({super.key});
+
+  @override
+  State<BankPaymentScreen> createState() => _BankPaymentScreenState();
+}
+
+class _BankPaymentScreenState extends State<BankPaymentScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedType = 'All';
+  String _selectedStatus = 'All';
   final ScrollController _scrollController = ScrollController();
   bool _isSearchSticky = false;
 
-  final List<String> _filterOptions = [
-    'All',
-    'Payment',
-    'Receipt',
-    'Contra',
-    'Journal'
+  final List<String> _statusOptions = ['All', 'Completed', 'Pending', 'Failed'];
+
+  final List<BankPayment> _allPayments = [
+    BankPayment(
+      id: '1',
+      paymentNo: 'PAY-2025-001',
+      paymentDate: DateTime.now().subtract(const Duration(days: 1)),
+      bankAccount: 'HDFC Bank - 1234',
+      recipient: 'ABC Suppliers Ltd',
+      accountHead: 'Expenses',
+      ledgerAccount: 'Office Supplies',
+      description: 'Payment for office supplies purchased in March',
+      amount: 25000.00,
+      status: 'Completed',
+      transactionId: 'TXN123456789',
+    ),
+    BankPayment(
+      id: '2',
+      paymentNo: 'PAY-2025-002',
+      paymentDate: DateTime.now(),
+      bankAccount: 'ICICI Bank - 5678',
+      recipient: 'XYZ Corporation',
+      accountHead: 'Expenses',
+      ledgerAccount: 'Rent',
+      description: 'Monthly office rent payment for April 2025',
+      amount: 45000.00,
+      status: 'Completed',
+      transactionId: 'TXN987654321',
+    ),
+    BankPayment(
+      id: '3',
+      paymentNo: 'PAY-2025-003',
+      paymentDate: DateTime.now().subtract(const Duration(days: 2)),
+      bankAccount: 'SBI Bank - 9012',
+      recipient: 'Tech Solutions Inc',
+      accountHead: 'Expenses',
+      ledgerAccount: 'Software Subscription',
+      description: 'Annual software license renewal',
+      amount: 120000.00,
+      status: 'Pending',
+      transactionId: 'TXN456789123',
+    ),
+    BankPayment(
+      id: '4',
+      paymentNo: 'PAY-2025-004',
+      paymentDate: DateTime.now().subtract(const Duration(days: 3)),
+      bankAccount: 'HDFC Bank - 1234',
+      recipient: 'Utility Services Ltd',
+      accountHead: 'Expenses',
+      ledgerAccount: 'Electricity',
+      description: 'Electricity bill payment for March',
+      amount: 8500.00,
+      status: 'Completed',
+      transactionId: 'TXN789123456',
+    ),
+    BankPayment(
+      id: '5',
+      paymentNo: 'PAY-2025-005',
+      paymentDate: DateTime.now().subtract(const Duration(days: 5)),
+      bankAccount: 'Axis Bank - 3456',
+      recipient: 'Global Marketing Agency',
+      accountHead: 'Expenses',
+      ledgerAccount: 'Marketing',
+      description: 'Digital marketing campaign payment',
+      amount: 75000.00,
+      status: 'Failed',
+      transactionId: 'TXN321654987',
+    ),
+    BankPayment(
+      id: '6',
+      paymentNo: 'PAY-2025-006',
+      paymentDate: DateTime.now().subtract(const Duration(days: 7)),
+      bankAccount: 'ICICI Bank - 5678',
+      recipient: 'Employee Salaries',
+      accountHead: 'Expenses',
+      ledgerAccount: 'Salary',
+      description: 'Monthly salary for March 2025',
+      amount: 350000.00,
+      status: 'Completed',
+      transactionId: 'TXN654987321',
+    ),
+    BankPayment(
+      id: '7',
+      paymentNo: 'PAY-2025-007',
+      paymentDate: DateTime.now().subtract(const Duration(days: 4)),
+      bankAccount: 'SBI Bank - 9012',
+      recipient: 'Insurance Co Ltd',
+      accountHead: 'Expenses',
+      ledgerAccount: 'Insurance',
+      description: 'Annual insurance premium payment',
+      amount: 55000.00,
+      status: 'Pending',
+      transactionId: 'TXN147258369',
+    ),
   ];
 
-  final List<Map<String, dynamic>> _allVouchers = [
-    {
-      'id': 'VCH-001',
-      'voucherNo': 'PAY-2025-001',
-      'type': 'Payment',
-      'recipient': 'ABC Suppliers Ltd',
-      'description': 'Payment for office supplies purchased in March',
-      'amount': 25000.00,
-      'amountWords': 'Twenty Five Thousand Only',
-      'date': DateTime.now().subtract(const Duration(days: 2)),
-      'status': 'Approved',
-      'createdBy': 'John Doe',
-      'mode': 'Bank Transfer',
-    },
-    {
-      'id': 'VCH-002',
-      'voucherNo': 'REC-2025-001',
-      'type': 'Receipt',
-      'recipient': 'XYZ Corporation',
-      'description': 'Payment received for invoice #INV-001',
-      'amount': 150000.00,
-      'amountWords': 'One Lakh Fifty Thousand Only',
-      'date': DateTime.now().subtract(const Duration(days: 1)),
-      'status': 'Approved',
-      'createdBy': 'Jane Smith',
-      'mode': 'Cheque',
-    },
-    {
-      'id': 'VCH-003',
-      'voucherNo': 'CON-2025-001',
-      'type': 'Contra',
-      'recipient': 'HDFC Bank to ICICI Bank',
-      'description': 'Fund transfer between bank accounts',
-      'amount': 50000.00,
-      'amountWords': 'Fifty Thousand Only',
-      'date': DateTime.now().subtract(const Duration(days: 3)),
-      'status': 'Approved',
-      'createdBy': 'John Doe',
-      'mode': 'Bank Transfer',
-    },
-    {
-      'id': 'VCH-004',
-      'voucherNo': 'PAY-2025-002',
-      'type': 'Payment',
-      'recipient': 'Office Rentals Pvt Ltd',
-      'description': 'Monthly office rent payment for April 2025',
-      'amount': 45000.00,
-      'amountWords': 'Forty Five Thousand Only',
-      'date': DateTime.now().subtract(const Duration(days: 5)),
-      'status': 'Pending',
-      'createdBy': 'Admin',
-      'mode': 'Cheque',
-    },
-    {
-      'id': 'VCH-005',
-      'voucherNo': 'REC-2025-002',
-      'type': 'Receipt',
-      'recipient': 'Tech Solutions Inc',
-      'description': 'Advance payment for upcoming project',
-      'amount': 75000.00,
-      'amountWords': 'Seventy Five Thousand Only',
-      'date': DateTime.now().subtract(const Duration(days: 7)),
-      'status': 'Approved',
-      'createdBy': 'Jane Smith',
-      'mode': 'UPI',
-    },
-    {
-      'id': 'VCH-006',
-      'voucherNo': 'JNL-2025-001',
-      'type': 'Journal',
-      'recipient': 'Internal',
-      'description': 'Depreciation adjustment for fixed assets',
-      'amount': 12000.00,
-      'amountWords': 'Twelve Thousand Only',
-      'date': DateTime.now().subtract(const Duration(days: 4)),
-      'status': 'Draft',
-      'createdBy': 'John Doe',
-      'mode': 'N/A',
-    },
-    {
-      'id': 'VCH-007',
-      'voucherNo': 'PAY-2025-003',
-      'type': 'Payment',
-      'recipient': 'Utility Services Ltd',
-      'description': 'Electricity bill payment for March',
-      'amount': 8500.00,
-      'amountWords': 'Eight Thousand Five Hundred Only',
-      'date': DateTime.now().subtract(const Duration(days: 8)),
-      'status': 'Rejected',
-      'createdBy': 'Admin',
-      'mode': 'Cash',
-    },
-  ];
-
-  List<Map<String, dynamic>> _filteredVouchers = [];
+  List<BankPayment> _filteredPayments = [];
 
   @override
   void initState() {
     super.initState();
-    _filteredVouchers = List.from(_allVouchers);
-    _searchController.addListener(_filterVouchers);
+    _filteredPayments = List.from(_allPayments);
+    _searchController.addListener(_filterPayments);
     _scrollController.addListener(_scrollListener);
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(_filterVouchers);
+    _searchController.removeListener(_filterPayments);
     _scrollController.removeListener(_scrollListener);
     _searchController.dispose();
     _scrollController.dispose();
@@ -146,20 +186,20 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
     });
   }
 
-  void _filterVouchers() {
+  void _filterPayments() {
     setState(() {
-      _filteredVouchers = _allVouchers.where((voucher) {
+      _filteredPayments = _allPayments.where((payment) {
         final searchQuery = _searchController.text.toLowerCase();
         final matchesSearch = searchQuery.isEmpty ||
-            voucher['voucherNo'].toLowerCase().contains(searchQuery) ||
-            voucher['recipient'].toLowerCase().contains(searchQuery) ||
-            voucher['description'].toLowerCase().contains(searchQuery) ||
-            voucher['id'].toLowerCase().contains(searchQuery);
+            payment.paymentNo.toLowerCase().contains(searchQuery) ||
+            payment.recipient.toLowerCase().contains(searchQuery) ||
+            payment.description.toLowerCase().contains(searchQuery) ||
+            payment.transactionId.toLowerCase().contains(searchQuery);
 
-        final matchesType =
-            _selectedType == 'All' || voucher['type'] == _selectedType;
+        final matchesStatus =
+            _selectedStatus == 'All' || payment.status == _selectedStatus;
 
-        return matchesSearch && matchesType;
+        return matchesSearch && matchesStatus;
       }).toList();
     });
   }
@@ -193,7 +233,7 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Filter Vouchers',
+                      Text('Filter Payments',
                           style: GoogleFonts.lato(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -211,7 +251,7 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  Text('Voucher Type',
+                  Text('Payment Status',
                       style: GoogleFonts.lato(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -220,11 +260,11 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: _filterOptions.map((type) {
-                      bool isSelected = _selectedType == type;
+                    children: _statusOptions.map((status) {
+                      bool isSelected = _selectedStatus == status;
                       return FilterChip(
                         selected: isSelected,
-                        label: Text(type,
+                        label: Text(status,
                             style: GoogleFonts.lato(
                                 fontSize: 13,
                                 fontWeight: isSelected
@@ -234,8 +274,8 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                     ? Colors.white
                                     : Colors.black87)),
                         onSelected: (selected) {
-                          setState(() => _selectedType = type);
-                          _filterVouchers();
+                          setState(() => _selectedStatus = status);
+                          _filterPayments();
                           Navigator.pop(context);
                         },
                         backgroundColor: Colors.grey.shade100,
@@ -255,10 +295,10 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                         child: OutlinedButton(
                           onPressed: () {
                             setState(() {
-                              _selectedType = 'All';
+                              _selectedStatus = 'All';
                               _searchController.clear();
                             });
-                            _filterVouchers();
+                            _filterPayments();
                             Navigator.pop(context);
                           },
                           style: OutlinedButton.styleFrom(
@@ -302,78 +342,40 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
     );
   }
 
-  void _showVoucherDetail(Map<String, dynamic> voucher) {
+  void _showPaymentDetail(BankPayment payment) {
     Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => VoucherDetailScreen(voucher: voucher)));
-  }
-
-  Color _getTypeColor(String type) {
-    switch (type) {
-      case 'Payment':
-        return const Color(0xFFEF4444);
-      case 'Receipt':
-        return const Color(0xFF10B981);
-      case 'Contra':
-        return const Color(0xFF3B82F6);
-      case 'Journal':
-        return const Color(0xFF8B5CF6);
-      default:
-        return AppTheme.subtitleGray;
-    }
+            builder: (context) => BankPaymentDetailScreen(payment: payment)));
   }
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'Approved':
+      case 'Completed':
         return const Color(0xFF10B981);
       case 'Pending':
         return const Color(0xFFF59E0B);
-      case 'Draft':
-        return const Color(0xFF94A3B8);
-      case 'Rejected':
+      case 'Failed':
         return const Color(0xFFEF4444);
       default:
         return AppTheme.subtitleGray;
-    }
-  }
-
-  IconData _getTypeIcon(String type) {
-    switch (type) {
-      case 'Payment':
-        return Icons.arrow_upward;
-      case 'Receipt':
-        return Icons.arrow_downward;
-      case 'Contra':
-        return Icons.swap_horiz;
-      case 'Journal':
-        return Icons.book;
-      default:
-        return Icons.receipt;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final totalVouchers = _filteredVouchers.length;
-    final totalAmount =
-        _filteredVouchers.fold(0.0, (sum, v) => sum + (v['amount'] as double));
-    final paymentCount =
-        _filteredVouchers.where((v) => v['type'] == 'Payment').length;
-    final paymentAmount = _filteredVouchers
-        .where((v) => v['type'] == 'Payment')
-        .fold(0.0, (sum, v) => sum + (v['amount'] as double));
-    final receiptCount =
-        _filteredVouchers.where((v) => v['type'] == 'Receipt').length;
-    final receiptAmount = _filteredVouchers
-        .where((v) => v['type'] == 'Receipt')
-        .fold(0.0, (sum, v) => sum + (v['amount'] as double));
-    final contraCount =
-        _filteredVouchers.where((v) => v['type'] == 'Contra').length;
-    final contraAmount = _filteredVouchers
-        .where((v) => v['type'] == 'Contra')
-        .fold(0.0, (sum, v) => sum + (v['amount'] as double));
+    final totalPayments = _filteredPayments.length;
+    final totalAmount = _filteredPayments.fold(0.0, (sum, p) => sum + p.amount);
+    final completedCount =
+        _filteredPayments.where((p) => p.status == 'Completed').length;
+    final completedAmount = _filteredPayments
+        .where((p) => p.status == 'Completed')
+        .fold(0.0, (sum, p) => sum + p.amount);
+    final pendingCount =
+        _filteredPayments.where((p) => p.status == 'Pending').length;
+    final pendingAmount = _filteredPayments
+        .where((p) => p.status == 'Pending')
+        .fold(0.0, (sum, p) => sum + p.amount);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -384,7 +386,7 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
             icon: const Icon(Icons.arrow_back_ios,
                 color: AppTheme.primaryDarkBlue, size: 20),
             onPressed: () => Navigator.pop(context)),
-        title: Text('Vouchers',
+        title: Text('Bank Payments',
             style: GoogleFonts.lato(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -412,7 +414,7 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
-                              // Total Vouchers Card
+                              // Total Payments Card
                               Container(
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(12),
@@ -435,13 +437,13 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Text('Total Vouchers',
+                                          Text('Total Payments',
                                               style: GoogleFonts.lato(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.w600,
                                                   color: Colors.white70)),
                                           const SizedBox(height: 4),
-                                          Text(totalVouchers.toString(),
+                                          Text(totalPayments.toString(),
                                               style: GoogleFonts.lato(
                                                   fontSize: 24,
                                                   fontWeight: FontWeight.bold,
@@ -459,38 +461,36 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                                 Colors.white.withOpacity(0.2),
                                             borderRadius:
                                                 BorderRadius.circular(12)),
-                                        child: const Icon(Icons.receipt_long,
+                                        child: const Icon(Icons.payments,
                                             size: 24, color: Colors.white)),
                                   ],
                                 ),
                               ),
                               const SizedBox(height: 10),
-                              // Three Cards Row
-                              Row(children: [
-                                Expanded(
+                              // Two Cards Row
+                              Row(
+                                children: [
+                                  Expanded(
                                     child: _buildKPICard(
-                                        'Payments',
-                                        paymentCount.toString(),
-                                        '₹${NumberFormat('#,##0').format(paymentAmount)}',
-                                        Icons.arrow_upward,
-                                        const Color(0xFFEF4444))),
-                                const SizedBox(width: 10),
-                                Expanded(
+                                        'Completed',
+                                        completedCount.toString(),
+                                        '₹${NumberFormat('#,##0').format(completedAmount)}',
+                                        Icons.check_circle,
+                                        const Color(0xFF10B981),
+                                        'Successful payments'),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
                                     child: _buildKPICard(
-                                        'Receipts',
-                                        receiptCount.toString(),
-                                        '₹${NumberFormat('#,##0').format(receiptAmount)}',
-                                        Icons.arrow_downward,
-                                        const Color(0xFF10B981))),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                    child: _buildKPICard(
-                                        'Contra',
-                                        contraCount.toString(),
-                                        '₹${NumberFormat('#,##0').format(contraAmount)}',
-                                        Icons.swap_horiz,
-                                        const Color(0xFF3B82F6))),
-                              ]),
+                                        'Pending',
+                                        pendingCount.toString(),
+                                        '₹${NumberFormat('#,##0').format(pendingAmount)}',
+                                        Icons.pending_actions,
+                                        const Color(0xFFF59E0B),
+                                        'Awaiting clearance'),
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                         ),
@@ -519,7 +519,7 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                           style: GoogleFonts.lato(fontSize: 13),
                                           decoration: InputDecoration(
                                             hintText:
-                                                'Search by Voucher No or Recipient',
+                                                'Search by Payment No, Recipient or Transaction ID',
                                             hintStyle: GoogleFonts.lato(
                                                 fontSize: 12,
                                                 color: Colors.grey.shade400),
@@ -543,20 +543,20 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 16),
                                         decoration: BoxDecoration(
-                                          color: _selectedType != 'All'
+                                          color: _selectedStatus != 'All'
                                               ? AppTheme.primaryDarkBlue
                                               : Colors.white,
                                           borderRadius:
                                               BorderRadius.circular(12),
                                           border: Border.all(
-                                              color: _selectedType != 'All'
+                                              color: _selectedStatus != 'All'
                                                   ? AppTheme.primaryDarkBlue
                                                   : Colors.grey.shade200),
                                         ),
                                         child: Row(children: [
                                           Icon(Icons.filter_list,
                                               size: 16,
-                                              color: _selectedType != 'All'
+                                              color: _selectedStatus != 'All'
                                                   ? Colors.white
                                                   : AppTheme.subtitleGray),
                                           const SizedBox(width: 6),
@@ -564,16 +564,17 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                               style: GoogleFonts.lato(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.w600,
-                                                  color: _selectedType != 'All'
-                                                      ? Colors.white
-                                                      : Colors.black87)),
+                                                  color:
+                                                      _selectedStatus != 'All'
+                                                          ? Colors.white
+                                                          : Colors.black87)),
                                         ]),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              if (_selectedType != 'All')
+                              if (_selectedStatus != 'All')
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16),
@@ -581,13 +582,14 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                       scrollDirection: Axis.horizontal,
                                       child: Row(children: [
                                         Chip(
-                                          label: Text('Type: $_selectedType',
+                                          label: Text(
+                                              'Status: $_selectedStatus',
                                               style: GoogleFonts.lato(
                                                   fontSize: 11)),
                                           onDeleted: () {
                                             setState(
-                                                () => _selectedType = 'All');
-                                            _filterVouchers();
+                                                () => _selectedStatus = 'All');
+                                            _filterPayments();
                                           },
                                           backgroundColor: AppTheme.lightBlueBg,
                                           deleteIcon:
@@ -600,16 +602,16 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                           ),
                         ),
 
-                        // Voucher List
-                        if (_filteredVouchers.isEmpty)
+                        // Payment List
+                        if (_filteredPayments.isEmpty)
                           Padding(
                             padding: const EdgeInsets.all(32),
                             child: Center(
                               child: Column(children: [
-                                Icon(Icons.receipt_long_outlined,
+                                Icon(Icons.payments_outlined,
                                     size: 60, color: Colors.grey.shade300),
                                 const SizedBox(height: 12),
-                                Text('No vouchers found',
+                                Text('No payments found',
                                     style: GoogleFonts.lato(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
@@ -627,12 +629,11 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: _filteredVouchers.length,
+                            itemCount: _filteredPayments.length,
                             itemBuilder: (context, index) {
-                              final voucher = _filteredVouchers[index];
-                              final typeColor = _getTypeColor(voucher['type']);
+                              final payment = _filteredPayments[index];
                               final statusColor =
-                                  _getStatusColor(voucher['status']);
+                                  _getStatusColor(payment.status);
 
                               return Container(
                                 margin: const EdgeInsets.only(bottom: 10),
@@ -644,7 +645,7 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                 child: Material(
                                   color: Colors.transparent,
                                   child: InkWell(
-                                    onTap: () => _showVoucherDetail(voucher),
+                                    onTap: () => _showPaymentDetail(payment),
                                     borderRadius: BorderRadius.circular(12),
                                     child: Padding(
                                       padding: const EdgeInsets.all(12),
@@ -652,7 +653,6 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          // Header Row
                                           Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
@@ -663,7 +663,7 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                                         CrossAxisAlignment
                                                             .start,
                                                     children: [
-                                                      Text(voucher['recipient'],
+                                                      Text(payment.recipient,
                                                           style: GoogleFonts.lato(
                                                               fontSize: 14,
                                                               fontWeight:
@@ -687,8 +687,8 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                                                         .circular(
                                                                             8)),
                                                             child: Text(
-                                                                voucher[
-                                                                    'voucherNo'],
+                                                                payment
+                                                                    .paymentNo,
                                                                 style: GoogleFonts.lato(
                                                                     fontSize: 9,
                                                                     color: AppTheme
@@ -696,46 +696,27 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                                         const SizedBox(
                                                             width: 8),
                                                         Container(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .symmetric(
-                                                                    horizontal:
-                                                                        6,
-                                                                    vertical:
-                                                                        2),
+                                                            padding: const EdgeInsets
+                                                                .symmetric(
+                                                                horizontal: 6,
+                                                                vertical: 2),
                                                             decoration: BoxDecoration(
-                                                                color: typeColor
-                                                                    .withOpacity(
-                                                                        0.1),
+                                                                color: AppTheme
+                                                                    .lightBlueBg,
                                                                 borderRadius:
                                                                     BorderRadius
                                                                         .circular(
                                                                             8)),
-                                                            child: Row(
-                                                                mainAxisSize:
-                                                                    MainAxisSize
-                                                                        .min,
-                                                                children: [
-                                                                  Icon(
-                                                                      _getTypeIcon(
-                                                                          voucher[
-                                                                              'type']),
-                                                                      size: 10,
-                                                                      color:
-                                                                          typeColor),
-                                                                  const SizedBox(
-                                                                      width: 4),
-                                                                  Text(
-                                                                      voucher[
-                                                                          'type'],
-                                                                      style: GoogleFonts.lato(
-                                                                          fontSize:
-                                                                              9,
-                                                                          fontWeight: FontWeight
-                                                                              .w600,
-                                                                          color:
-                                                                              typeColor)),
-                                                                ])),
+                                                            child: Text(
+                                                                payment
+                                                                    .bankAccount,
+                                                                style: GoogleFonts.lato(
+                                                                    fontSize: 9,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    color: AppTheme
+                                                                        .primaryDarkBlue))),
                                                       ]),
                                                     ]),
                                               ),
@@ -744,11 +725,10 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                                       CrossAxisAlignment.end,
                                                   children: [
                                                     Container(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .symmetric(
-                                                                horizontal: 8,
-                                                                vertical: 3),
+                                                        padding: const EdgeInsets
+                                                            .symmetric(
+                                                            horizontal: 8,
+                                                            vertical: 3),
                                                         decoration: BoxDecoration(
                                                             color: statusColor
                                                                 .withOpacity(
@@ -758,7 +738,7 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                                                     .circular(
                                                                         10)),
                                                         child: Text(
-                                                            voucher['status'],
+                                                            payment.status,
                                                             style: GoogleFonts.lato(
                                                                 fontSize: 9,
                                                                 fontWeight:
@@ -768,7 +748,7 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                                                     statusColor))),
                                                     const SizedBox(height: 6),
                                                     Text(
-                                                        '₹${NumberFormat('#,##0').format(voucher['amount'])}',
+                                                        '₹${NumberFormat('#,##0').format(payment.amount)}',
                                                         style: GoogleFonts.lato(
                                                             fontSize: 16,
                                                             fontWeight:
@@ -779,27 +759,25 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                             ],
                                           ),
                                           const SizedBox(height: 8),
-                                          // Description
-                                          Text(voucher['description'],
+                                          Text(payment.description,
                                               style: GoogleFonts.lato(
                                                   fontSize: 11,
                                                   color: AppTheme.subtitleGray),
                                               maxLines: 2,
                                               overflow: TextOverflow.ellipsis),
                                           const SizedBox(height: 8),
-                                          // Footer
                                           Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment
                                                       .spaceBetween,
                                               children: [
                                                 Row(children: [
-                                                  const Icon(Icons.payment,
+                                                  const Icon(Icons.receipt,
                                                       size: 12,
                                                       color: AppTheme
                                                           .subtitleGray),
                                                   const SizedBox(width: 4),
-                                                  Text(voucher['mode'],
+                                                  Text(payment.ledgerAccount,
                                                       style: GoogleFonts.lato(
                                                           fontSize: 10,
                                                           color: AppTheme
@@ -814,8 +792,8 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                                                   const SizedBox(width: 4),
                                                   Text(
                                                       DateFormat('dd MMM yyyy')
-                                                          .format(
-                                                              voucher['date']),
+                                                          .format(payment
+                                                              .paymentDate),
                                                       style: GoogleFonts.lato(
                                                           fontSize: 10,
                                                           color: AppTheme
@@ -837,7 +815,7 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                 ),
               ),
 
-              // Create Voucher Button
+              // Create Payment Button
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: Colors.white, boxShadow: [
@@ -856,10 +834,10 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) =>
-                                    const CreateVoucherScreen()));
+                                    const CreateBankPaymentScreen()));
                       },
                       icon: const Icon(Icons.add, size: 18),
-                      label: Text('Create Voucher',
+                      label: Text('Create Payment',
                           style: GoogleFonts.lato(
                               fontSize: 14, fontWeight: FontWeight.w600)),
                       style: ElevatedButton.styleFrom(
@@ -902,7 +880,8 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                         controller: _searchController,
                         style: GoogleFonts.lato(fontSize: 13),
                         decoration: InputDecoration(
-                            hintText: 'Search by Voucher No or Recipient',
+                            hintText:
+                                'Search by Payment No, Recipient or Transaction ID',
                             hintStyle: GoogleFonts.lato(
                                 fontSize: 12, color: Colors.grey.shade400),
                             prefixIcon: const Icon(Icons.search,
@@ -920,12 +899,12 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                       height: 44,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
-                          color: _selectedType != 'All'
+                          color: _selectedStatus != 'All'
                               ? AppTheme.primaryDarkBlue
                               : Colors.white,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: _selectedType != 'All'
+                              color: _selectedStatus != 'All'
                                   ? AppTheme.primaryDarkBlue
                                   : Colors.grey.shade200),
                           boxShadow: [
@@ -937,7 +916,7 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                       child: Row(children: [
                         Icon(Icons.filter_list,
                             size: 16,
-                            color: _selectedType != 'All'
+                            color: _selectedStatus != 'All'
                                 ? Colors.white
                                 : AppTheme.subtitleGray),
                         const SizedBox(width: 6),
@@ -945,7 +924,7 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                             style: GoogleFonts.lato(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: _selectedType != 'All'
+                                color: _selectedStatus != 'All'
                                     ? Colors.white
                                     : Colors.black87))
                       ]),
@@ -959,8 +938,8 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
     );
   }
 
-  Widget _buildKPICard(
-      String title, String count, String amount, IconData icon, Color color) {
+  Widget _buildKPICard(String title, String count, String amount, IconData icon,
+      Color color, String subtitle) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -989,20 +968,23 @@ class _VoucherListScreenState extends State<VoucherListScreen> {
                 color: Colors.black87)),
         Text(amount,
             style: GoogleFonts.lato(
-                fontSize: 10, color: color, fontWeight: FontWeight.w600)),
+                fontSize: 11, color: color, fontWeight: FontWeight.w600)),
+        Text(subtitle,
+            style: GoogleFonts.lato(fontSize: 9, color: AppTheme.subtitleGray)),
       ]),
     );
   }
 }
 
-// ==================== VOUCHER DETAIL SCREEN ====================
-class VoucherDetailScreen extends StatelessWidget {
-  final Map<String, dynamic> voucher;
-  const VoucherDetailScreen({super.key, required this.voucher});
+// ==================== BANK PAYMENT DETAIL SCREEN ====================
+class BankPaymentDetailScreen extends StatelessWidget {
+  final BankPayment payment;
+  const BankPaymentDetailScreen({super.key, required this.payment});
 
   @override
   Widget build(BuildContext context) {
-    final typeColor = _getTypeColor(voucher['type']);
+    final statusColor = _getStatusColor(payment.status);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
@@ -1012,7 +994,7 @@ class VoucherDetailScreen extends StatelessWidget {
             icon: const Icon(Icons.arrow_back_ios,
                 color: AppTheme.primaryDarkBlue, size: 20),
             onPressed: () => Navigator.pop(context)),
-        title: Text('Voucher Details',
+        title: Text('Payment Details',
             style: GoogleFonts.lato(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -1041,13 +1023,13 @@ class VoucherDetailScreen extends StatelessWidget {
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                      Text(voucher['recipient'],
+                      Text(payment.recipient,
                           style: GoogleFonts.lato(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.white)),
                       const SizedBox(height: 4),
-                      Text('${voucher['voucherNo']} | ${voucher['type']}',
+                      Text(payment.paymentNo,
                           style: GoogleFonts.lato(
                               fontSize: 11, color: Colors.white70)),
                     ])),
@@ -1057,7 +1039,7 @@ class VoucherDetailScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(16)),
-                    child: Text(voucher['status'],
+                    child: Text(payment.status,
                         style: GoogleFonts.lato(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -1072,8 +1054,7 @@ class VoucherDetailScreen extends StatelessWidget {
                       Text('Amount',
                           style: GoogleFonts.lato(
                               fontSize: 10, color: Colors.white70)),
-                      Text(
-                          '₹${NumberFormat('#,##0').format(voucher['amount'])}',
+                      Text('₹${NumberFormat('#,##0').format(payment.amount)}',
                           style: GoogleFonts.lato(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -1083,41 +1064,24 @@ class VoucherDetailScreen extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                        color: typeColor.withOpacity(0.3),
+                        color: statusColor.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(8)),
-                    child: Text(voucher['type'],
-                        style: GoogleFonts.lato(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white))),
+                    child: Row(children: [
+                      Icon(_getStatusIcon(payment.status),
+                          size: 14, color: Colors.white),
+                      const SizedBox(width: 4),
+                      Text(payment.status,
+                          style: GoogleFonts.lato(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white)),
+                    ])),
               ]),
             ]),
           ),
           const SizedBox(height: 12),
 
-          // Amount in Words
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-                color: const Color(0xFFFEF3C7),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                    color: const Color(0xFFF59E0B).withOpacity(0.3))),
-            child: Row(children: [
-              const Icon(Icons.text_fields, size: 16, color: Color(0xFFF59E0B)),
-              const SizedBox(width: 10),
-              Expanded(
-                  child: Text(voucher['amountWords'],
-                      style: GoogleFonts.lato(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                          fontStyle: FontStyle.italic))),
-            ]),
-          ),
-          const SizedBox(height: 12),
-
-          // Voucher Information
+          // Payment Information
           Container(
             decoration: BoxDecoration(
                 color: Colors.white,
@@ -1127,7 +1091,7 @@ class VoucherDetailScreen extends StatelessWidget {
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Padding(
                   padding: const EdgeInsets.all(12),
-                  child: Text('Voucher Information',
+                  child: Text('Payment Information',
                       style: GoogleFonts.lato(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -1136,25 +1100,28 @@ class VoucherDetailScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(children: [
-                  _buildInfoRow(
-                      Icons.receipt, 'Voucher No', voucher['voucherNo']),
+                  _buildInfoRow(Icons.receipt, 'Payment No', payment.paymentNo),
+                  const SizedBox(height: 10),
+                  _buildInfoRow(Icons.calendar_today, 'Payment Date',
+                      DateFormat('dd MMM yyyy').format(payment.paymentDate)),
+                  const SizedBox(height: 10),
+                  _buildInfoRow(Icons.account_balance, 'Bank Account',
+                      payment.bankAccount),
                   const SizedBox(height: 10),
                   _buildInfoRow(
-                      Icons.person, 'Recipient / Entity', voucher['recipient']),
+                      Icons.business, 'Recipient / Payee', payment.recipient),
                   const SizedBox(height: 10),
                   _buildInfoRow(
-                      Icons.description, 'Description', voucher['description']),
+                      Icons.category, 'Account Head', payment.accountHead),
                   const SizedBox(height: 10),
                   _buildInfoRow(
-                      Icons.category, 'Voucher Type', voucher['type']),
+                      Icons.book, 'Ledger Account', payment.ledgerAccount),
                   const SizedBox(height: 10),
-                  _buildInfoRow(Icons.payment, 'Payment Mode', voucher['mode']),
-                  const SizedBox(height: 10),
-                  _buildInfoRow(Icons.calendar_today, 'Date',
-                      DateFormat('dd MMM yyyy').format(voucher['date'])),
+                  _buildInfoRow(Icons.description, 'Payment Description',
+                      payment.description),
                   const SizedBox(height: 10),
                   _buildInfoRow(
-                      Icons.person_outline, 'Created By', voucher['createdBy']),
+                      Icons.payments, 'Transaction ID', payment.transactionId),
                 ]),
               ),
             ]),
@@ -1184,175 +1151,113 @@ class VoucherDetailScreen extends StatelessWidget {
     ]);
   }
 
-  Color _getTypeColor(String type) {
-    switch (type) {
-      case 'Payment':
-        return const Color(0xFFEF4444);
-      case 'Receipt':
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Completed':
         return const Color(0xFF10B981);
-      case 'Contra':
-        return const Color(0xFF3B82F6);
-      case 'Journal':
-        return const Color(0xFF8B5CF6);
+      case 'Pending':
+        return const Color(0xFFF59E0B);
+      case 'Failed':
+        return const Color(0xFFEF4444);
       default:
         return AppTheme.subtitleGray;
     }
   }
+
+  IconData _getStatusIcon(String status) {
+    switch (status) {
+      case 'Completed':
+        return Icons.check_circle;
+      case 'Pending':
+        return Icons.pending;
+      case 'Failed':
+        return Icons.error;
+      default:
+        return Icons.info;
+    }
+  }
 }
 
-// ==================== CREATE VOUCHER SCREEN ====================
-class CreateVoucherScreen extends StatefulWidget {
-  const CreateVoucherScreen({super.key});
+// ==================== CREATE BANK PAYMENT SCREEN ====================
+class CreateBankPaymentScreen extends StatefulWidget {
+  const CreateBankPaymentScreen({super.key});
 
   @override
-  State<CreateVoucherScreen> createState() => _CreateVoucherScreenState();
+  State<CreateBankPaymentScreen> createState() =>
+      _CreateBankPaymentScreenState();
 }
 
-class _CreateVoucherScreenState extends State<CreateVoucherScreen> {
+class _CreateBankPaymentScreenState extends State<CreateBankPaymentScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _voucherNoController = TextEditingController();
+  final TextEditingController _paymentNoController = TextEditingController();
   final TextEditingController _recipientController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
-  final TextEditingController _amountWordsController = TextEditingController();
+  final TextEditingController _transactionIdController =
+      TextEditingController();
 
-  String _selectedType = 'Payment';
-  String _selectedMode = 'Cash';
-  DateTime _voucherDate = DateTime.now();
+  String _selectedBankAccount = 'HDFC Bank - 1234';
+  String _selectedAccountHead = 'Expenses';
+  String _selectedLedgerAccount = 'Office Supplies';
+  DateTime _paymentDate = DateTime.now();
 
-  final List<String> _voucherTypes = [
-    'Payment',
-    'Receipt',
-    'Contra',
-    'Journal'
-  ];
-  final List<String> _paymentModes = [
-    'Cash',
-    'Cheque',
-    'Bank Transfer',
-    'UPI',
-    'Demand Draft'
+  final List<String> _bankAccounts = [
+    'HDFC Bank - 1234',
+    'ICICI Bank - 5678',
+    'SBI Bank - 9012',
+    'Axis Bank - 3456',
+    'Kotak Bank - 7890',
   ];
 
-  // Number to words conversion
-  final Map<int, String> _ones = {
-    0: '',
-    1: 'One',
-    2: 'Two',
-    3: 'Three',
-    4: 'Four',
-    5: 'Five',
-    6: 'Six',
-    7: 'Seven',
-    8: 'Eight',
-    9: 'Nine',
-    10: 'Ten',
-    11: 'Eleven',
-    12: 'Twelve',
-    13: 'Thirteen',
-    14: 'Fourteen',
-    15: 'Fifteen',
-    16: 'Sixteen',
-    17: 'Seventeen',
-    18: 'Eighteen',
-    19: 'Nineteen'
-  };
+  final List<String> _accountHeads = [
+    'Assets',
+    'Expenses',
+    'Liabilities',
+    'Income',
+  ];
 
-  final Map<int, String> _tens = {
-    2: 'Twenty',
-    3: 'Thirty',
-    4: 'Forty',
-    5: 'Fifty',
-    6: 'Sixty',
-    7: 'Seventy',
-    8: 'Eighty',
-    9: 'Ninety'
+  final Map<String, List<String>> _ledgerAccounts = {
+    'Assets': [
+      'Cash in Hand',
+      'Bank Account',
+      'Accounts Receivable',
+      'Inventory'
+    ],
+    'Expenses': [
+      'Office Supplies',
+      'Rent',
+      'Salary',
+      'Utilities',
+      'Marketing',
+      'Insurance'
+    ],
+    'Liabilities': ['Accounts Payable', 'Short-term Loans', 'Tax Payable'],
+    'Income': ['Sales Revenue', 'Service Income', 'Interest Income'],
   };
 
   @override
   void initState() {
     super.initState();
-    _voucherNoController.text =
-        'VCH-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}';
-    _amountController.addListener(_updateAmountInWords);
+    _paymentNoController.text =
+        'PAY-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}';
   }
 
   @override
   void dispose() {
-    _voucherNoController.dispose();
+    _paymentNoController.dispose();
     _recipientController.dispose();
     _descriptionController.dispose();
     _amountController.dispose();
-    _amountWordsController.dispose();
+    _transactionIdController.dispose();
     super.dispose();
   }
 
-  void _updateAmountInWords() {
-    final amountText = _amountController.text;
-    if (amountText.isNotEmpty) {
-      final amount = double.tryParse(amountText);
-      if (amount != null) {
-        setState(() {
-          _amountWordsController.text = _convertNumberToWords(amount);
-        });
-      }
-    } else {
-      setState(() {
-        _amountWordsController.text = '';
-      });
-    }
-  }
-
-  String _convertNumberToWords(double number) {
-    if (number == 0) return 'Zero Only';
-
-    int rupees = number.toInt();
-    int paise = ((number - rupees) * 100).round();
-
-    String words = '';
-
-    if (rupees > 0) {
-      words += _convertToWords(rupees) + ' Only';
-    }
-
-    if (paise > 0) {
-      if (rupees > 0) words += ' and ';
-      words += _convertToWords(paise) + ' Paise Only';
-    }
-
-    return words;
-  }
-
-  String _convertToWords(int n) {
-    if (n == 0) return 'Zero';
-
-    if (n < 20) return _ones[n]!;
-
-    if (n < 100) {
-      return _tens[n ~/ 10]! + (n % 10 > 0 ? ' ${_ones[n % 10]}' : '');
-    }
-
-    if (n < 1000) {
-      return '${_ones[n ~/ 100]} Hundred${n % 100 > 0 ? ' and ${_convertToWords(n % 100)}' : ''}';
-    }
-
-    if (n < 100000) {
-      return '${_convertToWords(n ~/ 1000)} Thousand${n % 1000 > 0 ? ' ${_convertToWords(n % 1000)}' : ''}';
-    }
-
-    if (n < 10000000) {
-      return '${_convertToWords(n ~/ 100000)} Lakh${n % 100000 > 0 ? ' ${_convertToWords(n % 100000)}' : ''}';
-    }
-
-    return '${_convertToWords(n ~/ 10000000)} Crore${n % 10000000 > 0 ? ' ${_convertToWords(n % 10000000)}' : ''}';
-  }
-
-  void _saveVoucher() {
+  void _savePayment() {
     if (_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Voucher created successfully!'),
+            content: Text('Payment created successfully!'),
             backgroundColor: Color(0xFF10B981),
             behavior: SnackBarBehavior.floating),
       );
@@ -1371,7 +1276,7 @@ class _CreateVoucherScreenState extends State<CreateVoucherScreen> {
             icon: const Icon(Icons.arrow_back_ios,
                 color: AppTheme.primaryDarkBlue, size: 20),
             onPressed: () => Navigator.pop(context)),
-        title: Text('Create Voucher',
+        title: Text('Create Bank Payment',
             style: GoogleFonts.lato(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -1388,7 +1293,7 @@ class _CreateVoucherScreenState extends State<CreateVoucherScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Voucher Details Card
+                    // Payment Details Card
                     Container(
                       decoration: BoxDecoration(
                           color: Colors.white,
@@ -1411,11 +1316,11 @@ class _CreateVoucherScreenState extends State<CreateVoucherScreen> {
                                       color: AppTheme.primaryDarkBlue
                                           .withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(10)),
-                                  child: const Icon(Icons.receipt_long,
+                                  child: const Icon(Icons.payments,
                                       size: 20,
                                       color: AppTheme.primaryDarkBlue)),
                               const SizedBox(width: 12),
-                              Text('VOUCHER DETAILS',
+                              Text('PAYMENT DETAILS',
                                   style: GoogleFonts.lato(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
@@ -1427,59 +1332,75 @@ class _CreateVoucherScreenState extends State<CreateVoucherScreen> {
                           Padding(
                             padding: const EdgeInsets.all(16),
                             child: Column(children: [
-                              // Voucher Number
+                              // Payment Date
+                              _buildDateField(),
+                              const SizedBox(height: 16),
+
+                              // Payment / Voucher No
                               _buildTextField(
-                                  controller: _voucherNoController,
-                                  label: 'Voucher Number',
+                                  controller: _paymentNoController,
+                                  label: 'Payment / Voucher No.',
                                   hint: 'Auto-generated',
                                   icon: Icons.receipt,
                                   readOnly: true),
                               const SizedBox(height: 16),
 
-                              // Voucher Type & Date
-                              Row(children: [
-                                Expanded(
-                                    child: _buildDropdownField(
-                                        value: _selectedType,
-                                        label: 'Voucher Type',
-                                        hint: 'Select type',
-                                        icon: Icons.category,
-                                        items: _voucherTypes,
-                                        onChanged: (v) => setState(
-                                            () => _selectedType = v!))),
-                                const SizedBox(width: 12),
-                                Expanded(child: _buildDateField()),
-                              ]),
+                              // Bank Account Dropdown
+                              _buildDropdownField(
+                                  value: _selectedBankAccount,
+                                  label: 'Bank Account',
+                                  hint: 'Select bank account',
+                                  icon: Icons.account_balance,
+                                  items: _bankAccounts,
+                                  onChanged: (v) => setState(
+                                      () => _selectedBankAccount = v!)),
                               const SizedBox(height: 16),
 
-                              // Recipient
+                              // Recipient / Payee
                               _buildTextField(
                                 controller: _recipientController,
-                                label: 'Recipient / Entity',
+                                label: 'Recipient / Payee',
                                 hint: 'Enter recipient name',
-                                icon: Icons.person_outline,
+                                icon: Icons.business,
                                 validator: (v) => v == null || v.trim().isEmpty
                                     ? 'Please enter recipient name'
                                     : null,
                               ),
                               const SizedBox(height: 16),
 
-                              // Payment Mode
+                              // Account Head Dropdown
                               _buildDropdownField(
-                                  value: _selectedMode,
-                                  label: 'Payment Mode',
-                                  hint: 'Select mode',
-                                  icon: Icons.payment,
-                                  items: _paymentModes,
-                                  onChanged: (v) =>
-                                      setState(() => _selectedMode = v!)),
+                                  value: _selectedAccountHead,
+                                  label: 'Account Head',
+                                  hint: 'Select account head',
+                                  icon: Icons.category,
+                                  items: _accountHeads,
+                                  onChanged: (v) {
+                                    setState(() {
+                                      _selectedAccountHead = v!;
+                                      _selectedLedgerAccount =
+                                          _ledgerAccounts[_selectedAccountHead]!
+                                              .first;
+                                    });
+                                  }),
                               const SizedBox(height: 16),
 
-                              // Description
+                              // Ledger Account Dropdown
+                              _buildDropdownField(
+                                  value: _selectedLedgerAccount,
+                                  label: 'Ledger Account',
+                                  hint: 'Select ledger account',
+                                  icon: Icons.book,
+                                  items: _ledgerAccounts[_selectedAccountHead]!,
+                                  onChanged: (v) => setState(
+                                      () => _selectedLedgerAccount = v!)),
+                              const SizedBox(height: 16),
+
+                              // Payment Description
                               _buildTextField(
                                 controller: _descriptionController,
-                                label: 'Description',
-                                hint: 'Enter voucher description',
+                                label: 'Payment Description',
+                                hint: 'Enter payment description',
                                 icon: Icons.description_outlined,
                                 maxLines: 3,
                                 validator: (v) => v == null || v.trim().isEmpty
@@ -1488,10 +1409,10 @@ class _CreateVoucherScreenState extends State<CreateVoucherScreen> {
                               ),
                               const SizedBox(height: 16),
 
-                              // Voucher Amount
+                              // Payment Amount
                               _buildTextField(
                                 controller: _amountController,
-                                label: 'Voucher Amount (₹)',
+                                label: 'Payment Amount (₹)',
                                 hint: '0.00',
                                 icon: Icons.currency_rupee,
                                 keyboardType: TextInputType.number,
@@ -1504,60 +1425,20 @@ class _CreateVoucherScreenState extends State<CreateVoucherScreen> {
                                   return null;
                                 },
                               ),
+                              const SizedBox(height: 16),
+
+                              // Transaction ID (Optional)
+                              _buildTextField(
+                                controller: _transactionIdController,
+                                label: 'Transaction ID (Optional)',
+                                hint: 'Enter transaction reference',
+                                icon: Icons.confirmation_number,
+                              ),
                             ]),
                           ),
                         ],
                       ),
                     ),
-
-                    const SizedBox(height: 16),
-
-                    // Amount in Words Card
-                    if (_amountWordsController.text.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                const Color(0xFFFEF3C7),
-                                const Color(0xFFFDE68A).withOpacity(0.5)
-                              ]),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                              color: const Color(0xFFF59E0B).withOpacity(0.3)),
-                        ),
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(children: [
-                                Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(
-                                        color: const Color(0xFFF59E0B)
-                                            .withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(8)),
-                                    child: const Icon(Icons.text_fields,
-                                        size: 16, color: Color(0xFFF59E0B))),
-                                const SizedBox(width: 10),
-                                Text('AMOUNT IN WORDS',
-                                    style: GoogleFonts.lato(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: const Color(0xFFF59E0B),
-                                        letterSpacing: 0.5)),
-                              ]),
-                              const SizedBox(height: 12),
-                              Text(_amountWordsController.text,
-                                  style: GoogleFonts.lato(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black87,
-                                      fontStyle: FontStyle.italic,
-                                      height: 1.4)),
-                            ]),
-                      ),
 
                     const SizedBox(height: 80),
                   ],
@@ -1579,7 +1460,7 @@ class _CreateVoucherScreenState extends State<CreateVoucherScreen> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _saveVoucher,
+                  onPressed: _savePayment,
                   style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryDarkBlue,
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1589,9 +1470,9 @@ class _CreateVoucherScreenState extends State<CreateVoucherScreen> {
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.save, size: 20, color: Colors.white),
+                        const Icon(Icons.send, size: 20, color: Colors.white),
                         const SizedBox(width: 8),
-                        Text('Save Voucher',
+                        Text('Create Payment',
                             style: GoogleFonts.lato(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -1651,7 +1532,7 @@ class _CreateVoucherScreenState extends State<CreateVoucherScreen> {
 
   Widget _buildDateField() {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('VOUCHER DATE',
+      Text('PAYMENT DATE',
           style: GoogleFonts.lato(
               fontSize: 10,
               fontWeight: FontWeight.w600,
@@ -1662,7 +1543,7 @@ class _CreateVoucherScreenState extends State<CreateVoucherScreen> {
         onTap: () async {
           final date = await showDatePicker(
             context: context,
-            initialDate: _voucherDate,
+            initialDate: _paymentDate,
             firstDate: DateTime(2020),
             lastDate: DateTime(2030),
             builder: (context, child) => Theme(
@@ -1671,7 +1552,7 @@ class _CreateVoucherScreenState extends State<CreateVoucherScreen> {
                         primary: AppTheme.primaryDarkBlue)),
                 child: child!),
           );
-          if (date != null) setState(() => _voucherDate = date);
+          if (date != null) setState(() => _paymentDate = date);
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
@@ -1683,7 +1564,7 @@ class _CreateVoucherScreenState extends State<CreateVoucherScreen> {
             const Icon(Icons.calendar_today,
                 size: 16, color: AppTheme.subtitleGray),
             const SizedBox(width: 10),
-            Text(DateFormat('dd MMM yyyy').format(_voucherDate),
+            Text(DateFormat('dd MMM yyyy').format(_paymentDate),
                 style: GoogleFonts.lato(
                     fontSize: 13,
                     color: Colors.black87,
