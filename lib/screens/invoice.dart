@@ -5,10 +5,9 @@ import '../theme/app_theme.dart';
 import 'create_invoice_screen.dart';
 import 'customer_screen.dart';
 
-// ==================== MAIN INVOICE LIST SCREEN ====================
+// ==================== MAIN INVOICE LIST SCREEN ==================== //
 class InvoiceListScreen extends StatefulWidget {
   const InvoiceListScreen({super.key});
-
   @override
   State<InvoiceListScreen> createState() => _InvoiceListScreenState();
 }
@@ -135,10 +134,8 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
             invoice['id'].toLowerCase().contains(searchQuery) ||
             invoice['customer'].toLowerCase().contains(searchQuery) ||
             invoice['email'].toLowerCase().contains(searchQuery);
-
         final matchesStatus =
             _selectedStatus == 'All' || invoice['status'] == _selectedStatus;
-
         return matchesSearch && matchesStatus;
       }).toList();
     });
@@ -1195,11 +1192,50 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
   }
 }
 
-// ==================== INVOICE DETAIL SCREEN ====================
-class InvoiceDetailScreen extends StatelessWidget {
+// ==================== INVOICE DETAIL SCREEN WITH PROFESSIONAL PREVIEW ====================
+class InvoiceDetailScreen extends StatefulWidget {
   final Map<String, dynamic> invoice;
 
   const InvoiceDetailScreen({super.key, required this.invoice});
+
+  @override
+  State<InvoiceDetailScreen> createState() => _InvoiceDetailScreenState();
+}
+
+class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
+  // Sample invoice items for preview
+  final List<Map<String, dynamic>> _invoiceItems = [
+    {
+      'description': 'Web Development Services',
+      'hsn': '998314',
+      'quantity': 1,
+      'unit': 'Project',
+      'price': 10000.00,
+      'discount': 5.0,
+      'tax': 18.0,
+      'amount': 10000.00,
+    },
+    {
+      'description': 'UI/UX Design Services',
+      'hsn': '998313',
+      'quantity': 1,
+      'unit': 'Project',
+      'price': 5000.00,
+      'discount': 0.0,
+      'tax': 18.0,
+      'amount': 5000.00,
+    },
+    {
+      'description': 'Server Maintenance - Monthly',
+      'hsn': '998412',
+      'quantity': 1,
+      'unit': 'Month',
+      'price': 2000.00,
+      'discount': 0.0,
+      'tax': 18.0,
+      'amount': 2000.00,
+    },
+  ];
 
   void _showDeleteConfirmation(BuildContext context) {
     showDialog(
@@ -1231,6 +1267,130 @@ class InvoiceDetailScreen extends StatelessWidget {
     );
   }
 
+  void _showShareOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Share Invoice',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildShareOption(Icons.picture_as_pdf, 'PDF', () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Generating PDF...')),
+                  );
+                }),
+                _buildShareOption(Icons.email, 'Email', () {
+                  Navigator.pop(context);
+                }),
+                _buildShareOption(Icons.share, 'Share', () {
+                  Navigator.pop(context);
+                }),
+                _buildShareOption(Icons.print, 'Print', () {
+                  Navigator.pop(context);
+                }),
+              ],
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShareOption(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.lightBlueBg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 24, color: AppTheme.primaryDarkBlue),
+          ),
+          const SizedBox(height: 8),
+          Text(label, style: GoogleFonts.lato(fontSize: 12)),
+        ],
+      ),
+    );
+  }
+
+  double _getDoubleValue(dynamic value) {
+    if (value is int) {
+      return value.toDouble();
+    } else if (value is double) {
+      return value;
+    }
+    return 0.0;
+  }
+
+  double _calculateSubtotal() {
+    double total = 0.0;
+    for (var item in _invoiceItems) {
+      total += _getDoubleValue(item['amount']);
+    }
+    return total;
+  }
+
+  double _calculateDiscount() {
+    double totalDiscount = 0.0;
+    for (var item in _invoiceItems) {
+      double amount = _getDoubleValue(item['amount']);
+      double discountPercent = _getDoubleValue(item['discount']);
+      double discount = amount * discountPercent / 100;
+      totalDiscount += discount;
+    }
+    return totalDiscount;
+  }
+
+  double _calculateTax() {
+    double totalTax = 0.0;
+    for (var item in _invoiceItems) {
+      double amount = _getDoubleValue(item['amount']);
+      double discountPercent = _getDoubleValue(item['discount']);
+      double taxPercent = _getDoubleValue(item['tax']);
+
+      double amountAfterDiscount = amount - (amount * discountPercent / 100);
+      double tax = amountAfterDiscount * taxPercent / 100;
+      totalTax += tax;
+    }
+    return totalTax;
+  }
+
+  double _calculateTotal() {
+    return _calculateSubtotal() - _calculateDiscount() + _calculateTax();
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Paid':
+        return const Color(0xFF10B981);
+      case 'Sent':
+        return const Color(0xFF3B82F6);
+      case 'Draft':
+        return const Color(0xFFF59E0B);
+      case 'Overdue':
+        return const Color(0xFFEF4444);
+      default:
+        return AppTheme.subtitleGray;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1244,19 +1404,29 @@ class InvoiceDetailScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Invoice Details',
+          'Invoice Preview',
           style: GoogleFonts.lato(
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: FontWeight.w700,
             color: AppTheme.primaryDarkBlue,
           ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.share,
+                color: AppTheme.primaryDarkBlue, size: 20),
+            onPressed: () => _showShareOptions(context),
+          ),
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: AppTheme.primaryDarkBlue),
+            icon: const Icon(Icons.more_vert,
+                color: AppTheme.primaryDarkBlue, size: 20),
             onSelected: (value) {
               if (value == 'delete') {
                 _showDeleteConfirmation(context);
+              } else if (value == 'download') {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Downloading PDF...')),
+                );
               }
             },
             itemBuilder: (context) => [
@@ -1264,9 +1434,20 @@ class InvoiceDetailScreen extends StatelessWidget {
                 value: 'edit',
                 child: Row(
                   children: [
-                    Icon(Icons.edit, size: 20, color: AppTheme.primaryDarkBlue),
+                    Icon(Icons.edit, size: 18, color: AppTheme.primaryDarkBlue),
                     SizedBox(width: 12),
                     Text('Edit Invoice'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'download',
+                child: Row(
+                  children: [
+                    Icon(Icons.download,
+                        size: 18, color: AppTheme.primaryDarkBlue),
+                    SizedBox(width: 12),
+                    Text('Download PDF'),
                   ],
                 ),
               ),
@@ -1274,7 +1455,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                 value: 'delete',
                 child: Row(
                   children: [
-                    Icon(Icons.delete, size: 20, color: Colors.red),
+                    Icon(Icons.delete, size: 18, color: Colors.red),
                     SizedBox(width: 12),
                     Text('Delete Invoice', style: TextStyle(color: Colors.red)),
                   ],
@@ -1285,259 +1466,675 @@ class InvoiceDetailScreen extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Invoice Header Card
+            // Professional Invoice Card - Full width
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppTheme.primaryDarkBlue,
-                    AppTheme.primaryDarkBlue.withOpacity(0.8),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(16),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
+                  // Header Section with Gradient
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppTheme.primaryDarkBlue,
+                          AppTheme.primaryDarkBlue.withOpacity(0.8),
+                        ],
+                      ),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              invoice['customer'],
-                              style: GoogleFonts.lato(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'INVOICE',
+                                  style: GoogleFonts.lato(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    letterSpacing: 1.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  widget.invoice['id'],
+                                  style: GoogleFonts.lato(
+                                    fontSize: 11,
+                                    color: Colors.white70,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              invoice['id'],
-                              style: GoogleFonts.lato(
-                                fontSize: 11,
-                                color: Colors.white70,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    _getStatusColor(widget.invoice['status']),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Text(
+                                widget.invoice['status'].toUpperCase(),
+                                style: GoogleFonts.lato(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(16),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'INVOICE DATE',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white70,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    DateFormat('dd MMM yyyy')
+                                        .format(widget.invoice['date']),
+                                    style: GoogleFonts.lato(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'DUE DATE',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white70,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    DateFormat('dd MMM yyyy')
+                                        .format(widget.invoice['dueDate']),
+                                    style: GoogleFonts.lato(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    'AMOUNT DUE',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white70,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '₹${NumberFormat('#,##0.00').format(_calculateTotal())}',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        child: Text(
-                          invoice['status'],
+                      ],
+                    ),
+                  ),
+
+                  // Company & Customer Info
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'FROM',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.subtitleGray,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Your Company Name',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '123 Business Street',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 10,
+                                      color: AppTheme.subtitleGray,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Mumbai, Maharashtra 400001',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 10,
+                                      color: AppTheme.subtitleGray,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'GST: 27AAACA1234E1Z5',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 9,
+                                      color: AppTheme.subtitleGray,
+                                    ),
+                                  ),
+                                  Text(
+                                    'PAN: AAACA1234E',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 9,
+                                      color: AppTheme.subtitleGray,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'TO',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.subtitleGray,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    widget.invoice['customer'],
+                                    style: GoogleFonts.lato(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    widget.invoice['address'],
+                                    style: GoogleFonts.lato(
+                                      fontSize: 10,
+                                      color: AppTheme.subtitleGray,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'GST: ${widget.invoice['gst']}',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 9,
+                                      color: AppTheme.subtitleGray,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Email: ${widget.invoice['email']}',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 9,
+                                      color: AppTheme.subtitleGray,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Phone: ${widget.invoice['phone']}',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 9,
+                                      color: AppTheme.subtitleGray,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Invoice Items Table - Scrollable horizontally for mobile
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: MediaQuery.of(context).size.width - 24,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Table Header
+                          Container(
+                            color: AppTheme.lightBlueBg,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 10,
+                            ),
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 120,
+                                  child: Text(
+                                    'DESCRIPTION',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryDarkBlue,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 60,
+                                  child: Text(
+                                    'HSN/SAC',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.lato(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryDarkBlue,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 50,
+                                  child: Text(
+                                    'QTY',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.lato(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryDarkBlue,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 70,
+                                  child: Text(
+                                    'RATE',
+                                    textAlign: TextAlign.right,
+                                    style: GoogleFonts.lato(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryDarkBlue,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 60,
+                                  child: Text(
+                                    'DISCOUNT',
+                                    textAlign: TextAlign.right,
+                                    style: GoogleFonts.lato(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryDarkBlue,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 50,
+                                  child: Text(
+                                    'TAX',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.lato(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryDarkBlue,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 80,
+                                  child: Text(
+                                    'AMOUNT',
+                                    textAlign: TextAlign.right,
+                                    style: GoogleFonts.lato(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryDarkBlue,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Table Rows
+                          ..._invoiceItems.asMap().entries.map((entry) {
+                            int index = entry.key;
+                            var item = entry.value;
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Colors.grey.shade100,
+                                  ),
+                                ),
+                                color: index % 2 == 0
+                                    ? Colors.white
+                                    : Colors.grey.shade50,
+                              ),
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 120,
+                                    child: Text(
+                                      item['description'],
+                                      style: GoogleFonts.lato(
+                                        fontSize: 10,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 60,
+                                    child: Text(
+                                      item['hsn'],
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 9,
+                                        color: AppTheme.subtitleGray,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 50,
+                                    child: Text(
+                                      '${item['quantity']} ${item['unit']}',
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 70,
+                                    child: Text(
+                                      '₹${NumberFormat('#,##0').format(_getDoubleValue(item['price']))}',
+                                      textAlign: TextAlign.right,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 10,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 60,
+                                    child: Text(
+                                      '${_getDoubleValue(item['discount']).toInt()}%',
+                                      textAlign: TextAlign.right,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 10,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 50,
+                                    child: Text(
+                                      '${_getDoubleValue(item['tax']).toInt()}%',
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 10,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 80,
+                                    child: Text(
+                                      '₹${NumberFormat('#,##0').format(_getDoubleValue(item['amount']))}',
+                                      textAlign: TextAlign.right,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Totals Section
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.lightBlueBg.withOpacity(0.3),
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(12),
+                        bottomRight: Radius.circular(12),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        _buildTotalRow('Subtotal', _calculateSubtotal()),
+                        if (_calculateDiscount() > 0)
+                          _buildTotalRow('Discount', -_calculateDiscount(),
+                              isNegative: true),
+                        _buildTotalRow('Tax (GST)', _calculateTax()),
+                        const Divider(height: 12, thickness: 1),
+                        _buildTotalRow('Total', _calculateTotal(),
+                            isBold: true, fontSize: 16),
+                      ],
+                    ),
+                  ),
+
+                  // Bank Details
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'BANK DETAILS',
                           style: GoogleFonts.lato(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.subtitleGray,
+                            letterSpacing: 0.5,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: 8),
+                        Row(
                           children: [
-                            Text(
-                              'Amount',
-                              style: GoogleFonts.lato(
-                                fontSize: 10,
-                                color: Colors.white70,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildBankDetail(
+                                      'Bank Name', 'HDFC Bank Ltd'),
+                                  const SizedBox(height: 6),
+                                  _buildBankDetail(
+                                      'Account Name', 'Your Company Name'),
+                                  const SizedBox(height: 6),
+                                  _buildBankDetail(
+                                      'Account Number', '12345678901234'),
+                                ],
                               ),
                             ),
-                            Text(
-                              '₹${NumberFormat('#,##0').format(invoice['amount'])}',
-                              style: GoogleFonts.lato(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildBankDetail('IFSC Code', 'HDFC0001234'),
+                                  const SizedBox(height: 6),
+                                  _buildBankDetail(
+                                      'Branch', 'Andheri East, Mumbai'),
+                                  const SizedBox(height: 6),
+                                  _buildBankDetail(
+                                      'UPI ID', 'company@hdfcbank'),
+                                ],
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              'Due Date',
-                              style: GoogleFonts.lato(
-                                fontSize: 10,
-                                color: Colors.white70,
-                              ),
-                            ),
-                            Text(
-                              DateFormat('dd MMM yyyy')
-                                  .format(invoice['dueDate']),
-                              style: GoogleFonts.lato(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Customer Information
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Text(
-                      'Customer Information',
-                      style: GoogleFonts.lato(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryDarkBlue,
-                      ),
+                      ],
                     ),
                   ),
-                  const Divider(height: 1),
-                  Padding(
-                    padding: const EdgeInsets.all(12),
+
+                  // Notes
+                  if (widget.invoice['notes'] != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'TERMS & NOTES',
+                            style: GoogleFonts.lato(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.subtitleGray,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppTheme.lightBlueBg,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              widget.invoice['notes'],
+                              style: GoogleFonts.lato(
+                                fontSize: 10,
+                                color: Colors.black87,
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  // Footer
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.lightBlueBg,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(12),
+                        bottomRight: Radius.circular(12),
+                      ),
+                    ),
                     child: Column(
                       children: [
-                        _buildInfoRow(
-                            Icons.email_outlined, 'Email', invoice['email']),
-                        const SizedBox(height: 10),
-                        _buildInfoRow(
-                            Icons.phone_outlined, 'Phone', invoice['phone']),
-                        const SizedBox(height: 10),
-                        _buildInfoRow(Icons.location_on_outlined, 'Address',
-                            invoice['address']),
-                        const SizedBox(height: 10),
-                        _buildInfoRow(Icons.request_quote_outlined,
-                            'GST Number', invoice['gst'] ?? 'Not provided'),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.verified,
+                                size: 12, color: AppTheme.primaryDarkBlue),
+                            const SizedBox(width: 4),
+                            Text(
+                              'This is a computer generated invoice',
+                              style: GoogleFonts.lato(
+                                fontSize: 8,
+                                color: AppTheme.subtitleGray,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Thank you for your business!',
+                          style: GoogleFonts.lato(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            fontStyle: FontStyle.italic,
+                            color: AppTheme.primaryDarkBlue,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-
-            const SizedBox(height: 12),
-
-            // Invoice Details
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Text(
-                      'Invoice Details',
-                      style: GoogleFonts.lato(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryDarkBlue,
-                      ),
-                    ),
-                  ),
-                  const Divider(height: 1),
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      children: [
-                        _buildInfoRow(Icons.calendar_today, 'Invoice Date',
-                            DateFormat('dd MMM yyyy').format(invoice['date'])),
-                        const SizedBox(height: 10),
-                        _buildInfoRow(
-                            Icons.event,
-                            'Due Date',
-                            DateFormat('dd MMM yyyy')
-                                .format(invoice['dueDate'])),
-                        const SizedBox(height: 10),
-                        _buildInfoRow(Icons.receipt, 'Total Items',
-                            '${invoice['items']} items'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Notes
-            if (invoice['notes'] != null &&
-                invoice['notes'].toString().isNotEmpty)
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Text(
-                        'Notes',
-                        style: GoogleFonts.lato(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryDarkBlue,
-                        ),
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Text(
-                        invoice['notes'],
-                        style: GoogleFonts.lato(
-                          fontSize: 12,
-                          color: AppTheme.subtitleGray,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            const SizedBox(height: 60),
+            const SizedBox(height: 70),
           ],
         ),
       ),
@@ -1558,14 +2155,12 @@ class InvoiceDetailScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    // Share invoice
-                  },
+                  onPressed: () => _showShareOptions(context),
                   icon: const Icon(Icons.share, size: 16),
                   label: Text(
                     'Share',
                     style: GoogleFonts.lato(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -1580,21 +2175,47 @@ class InvoiceDetailScreen extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Downloading PDF...')),
+                    );
+                  },
+                  icon: const Icon(Icons.download, size: 16),
+                  label: Text(
+                    'Download',
+                    style: GoogleFonts.lato(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    side: BorderSide(color: AppTheme.primaryDarkBlue),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 2,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    // Record payment
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Record payment feature coming soon')),
+                    );
                   },
-                  icon: const Icon(
-                    Icons.payment,
-                    size: 16,
-                    color: Colors.white,
-                  ),
+                  icon:
+                      const Icon(Icons.payment, size: 16, color: Colors.white),
                   label: Text(
                     'Record Payment',
                     style: GoogleFonts.lato(
-                      fontSize: 13,
-                      color: Colors.white,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
@@ -1614,31 +2235,62 @@ class InvoiceDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  Widget _buildTotalRow(String label, double amount,
+      {bool isBold = false, bool isNegative = false, double fontSize = 12}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text(
+            '$label: ',
+            style: GoogleFonts.lato(
+              fontSize: fontSize - 2,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
+              color: isBold ? Colors.black87 : AppTheme.subtitleGray,
+            ),
+          ),
+          Text(
+            isNegative
+                ? '-₹${NumberFormat('#,##0.00').format(amount.abs())}'
+                : '₹${NumberFormat('#,##0.00').format(amount)}',
+            style: GoogleFonts.lato(
+              fontSize: fontSize,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+              color: isBold
+                  ? AppTheme.primaryDarkBlue
+                  : (isNegative ? Colors.red : Colors.black87),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBankDetail(String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: AppTheme.subtitleGray),
-        const SizedBox(width: 10),
+        SizedBox(
+          width: 85,
+          child: Text(
+            label,
+            style: GoogleFonts.lato(
+              fontSize: 9,
+              color: AppTheme.subtitleGray,
+            ),
+          ),
+        ),
+        Text(':',
+            style: GoogleFonts.lato(fontSize: 9, color: AppTheme.subtitleGray)),
+        const SizedBox(width: 6),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.lato(
-                  fontSize: 10,
-                  color: AppTheme.subtitleGray,
-                ),
-              ),
-              Text(
-                value,
-                style: GoogleFonts.lato(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
+          child: Text(
+            value,
+            style: GoogleFonts.lato(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
           ),
         ),
       ],

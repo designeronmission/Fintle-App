@@ -16,6 +16,9 @@ import 'account_master_screen.dart';
 import 'journal_screen.dart';
 import 'voucher_screen.dart';
 import 'bank-payment.dart';
+import 'general_ledger.dart';
+import 'trial_balance_screen.dart';
+import 'balance_sheet_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -430,8 +433,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
             MaterialPageRoute(builder: (context) => const BankPaymentScreen()));
         break;
       case 'General Ledger':
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const GeneralLedgerScreen()));
+        break;
+
       case 'Trial Balance':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const TrialBalanceScreen()),
+        );
+        break;
+
       case 'Balance Sheets':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const BalanceSheetScreen()),
+        );
+        break;
+
       case 'Settings':
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
