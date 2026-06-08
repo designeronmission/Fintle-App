@@ -19,6 +19,10 @@ import 'bank-payment.dart';
 import 'general_ledger.dart';
 import 'trial_balance_screen.dart';
 import 'balance_sheet_screen.dart';
+import 'supplier_screen.dart';
+import 'create_supplier_screen.dart';
+import 'supplier_statement_screen.dart';
+import 'purchase_order_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -405,8 +409,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
         );
         break;
       case 'Supplier':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SupplierScreen()),
+        );
+        break;
       case 'Supplier Statement':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const SupplierStatementScreen()),
+        );
+        break;
       case 'Purchase Order':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const PurchaseOrderScreen()),
+        );
+        break;
       case 'Purchase Bill':
       case 'Enquiry':
       case 'Estimate':
