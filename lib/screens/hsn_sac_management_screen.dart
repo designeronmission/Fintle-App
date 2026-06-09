@@ -11,6 +11,7 @@ import 'item_screen.dart';
 import 'signin_screen.dart';
 import 'bills.dart';
 import 'invoice.dart';
+import 'category_management.dart';
 
 // ==================== HSN/SAC CODE MODEL ====================
 class HsnSacCode {
@@ -73,13 +74,13 @@ class _HsnSacManagementScreenState extends State<HsnSacManagementScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedType = 'All';
   String _selectedStatus = 'All';
-  int _selectedBottomNavIndex = 0;
+  int _selectedBottomNavIndex = 2; // Changed to 2 for Items menu
 
   List<HsnSacCode> _allCodes = [];
   List<HsnSacCode> _filteredCodes = [];
 
   bool _isLoading = true;
-  bool _isItemExpanded = false;
+  bool _isItemExpanded = true; // Changed to true for Master menu
   bool _isPurchaseExpanded = false;
   bool _isSalesExpanded = false;
   bool _isAccountExpanded = false;
@@ -330,6 +331,13 @@ class _HsnSacManagementScreenState extends State<HsnSacManagementScreen> {
           MaterialPageRoute(builder: (context) => const BillListScreen()),
         );
         break;
+      case 'Category':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const CategoryManagementScreen()),
+        );
+        break;
       case 'HSN & SAC Code':
         // Already on this screen
         break;
@@ -360,16 +368,19 @@ class _HsnSacManagementScreenState extends State<HsnSacManagementScreen> {
     });
   }
 
+// Update the build method's KPI section and _buildStatCard method
+
   @override
   Widget build(BuildContext context) {
     final activeCount =
         _filteredCodes.where((c) => c.status == 'Active').length;
     final hsnCount = _filteredCodes.where((c) => c.type == 'HSN').length;
     final sacCount = _filteredCodes.where((c) => c.type == 'SAC').length;
+    final totalItems = _filteredCodes.length;
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: const Color(0xFFF8F9FC),
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -388,27 +399,199 @@ class _HsnSacManagementScreenState extends State<HsnSacManagementScreen> {
       drawer: _buildStyledDrawer(),
       body: Column(
         children: [
-          // Stats Cards
+          // KPI Cards - Matching Customer Screen Design
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
+            child: Column(
               children: [
-                _buildStatCard('Total', _filteredCodes.length, Icons.code,
-                    AppTheme.primaryDarkBlue),
-                const SizedBox(width: 10),
-                _buildStatCard('Active', activeCount, Icons.check_circle,
-                    const Color(0xFF10B981)),
-                const SizedBox(width: 10),
-                _buildStatCard('HSN', hsnCount, Icons.inventory_2,
-                    const Color(0xFF3B82F6)),
-                const SizedBox(width: 10),
-                _buildStatCard('SAC', sacCount, Icons.room_service,
-                    const Color(0xFF8B5CF6)),
+                // Total Codes Card (Gradient - like Total Customers)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppTheme.primaryDarkBlue,
+                        AppTheme.primaryDarkBlue.withOpacity(0.8),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Total Codes',
+                            style: GoogleFonts.lato(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            totalItems.toString(),
+                            style: GoogleFonts.lato(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            'HSN: $hsnCount | SAC: $sacCount',
+                            style: GoogleFonts.lato(
+                              fontSize: 10,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.code,
+                          size: 24,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Two Cards Row - Active & Inactive
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Active',
+                                  style: GoogleFonts.lato(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.subtitleGray,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981)
+                                        .withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.check_circle,
+                                    size: 14,
+                                    color: Color(0xFF10B981),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              activeCount.toString(),
+                              style: GoogleFonts.lato(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            Text(
+                              '${((activeCount / totalItems) * 100).toStringAsFixed(0)}% of total',
+                              style: GoogleFonts.lato(
+                                fontSize: 10,
+                                color: AppTheme.subtitleGray,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Inactive',
+                                  style: GoogleFonts.lato(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.subtitleGray,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.cancel,
+                                    size: 14,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              (totalItems - activeCount).toString(),
+                              style: GoogleFonts.lato(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            Text(
+                              '${(((totalItems - activeCount) / totalItems) * 100).toStringAsFixed(0)}% of total',
+                              style: GoogleFonts.lato(
+                                fontSize: 10,
+                                color: AppTheme.subtitleGray,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
 
-          // Search & Filter
+          // Search & Filter (same as before)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -437,14 +620,14 @@ class _HsnSacManagementScreenState extends State<HsnSacManagementScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 _buildFilterChip(),
               ],
             ),
           ),
           const SizedBox(height: 12),
 
-          // Filter Chips Row
+          // Filter Chips Row (same as before)
           if (_selectedType != 'All' || _selectedStatus != 'All')
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -486,7 +669,7 @@ class _HsnSacManagementScreenState extends State<HsnSacManagementScreen> {
             ),
           const SizedBox(height: 12),
 
-          // List
+          // List (same as before)
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -516,12 +699,19 @@ class _HsnSacManagementScreenState extends State<HsnSacManagementScreen> {
                       ),
           ),
 
-          // Create Button
+          // Create Button (same as before)
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.white, boxShadow: [
-              BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 8)
-            ]),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
             child: SafeArea(
               top: false,
               child: SizedBox(
@@ -701,52 +891,84 @@ class _HsnSacManagementScreenState extends State<HsnSacManagementScreen> {
 
   Widget _buildCodeCard(HsnSacCode code) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () => _showCodeDetails(code),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(
                         color: code.type == 'HSN'
                             ? const Color(0xFF3B82F6).withOpacity(0.1)
                             : const Color(0xFF8B5CF6).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(code.type,
-                          style: GoogleFonts.lato(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: code.type == 'HSN'
-                                  ? const Color(0xFF3B82F6)
-                                  : const Color(0xFF8B5CF6))),
+                      child: Icon(
+                        code.type == 'HSN'
+                            ? Icons.inventory_2
+                            : Icons.room_service,
+                        size: 24,
+                        color: code.type == 'HSN'
+                            ? const Color(0xFF3B82F6)
+                            : const Color(0xFF8B5CF6),
+                      ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: Text(code.code,
-                          style: GoogleFonts.lato(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryDarkBlue)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(code.code,
+                              style: GoogleFonts.lato(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryDarkBlue)),
+                          const SizedBox(height: 2),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: code.type == 'HSN'
+                                  ? const Color(0xFF3B82F6).withOpacity(0.1)
+                                  : const Color(0xFF8B5CF6).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(code.type,
+                                style: GoogleFonts.lato(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: code.type == 'HSN'
+                                        ? const Color(0xFF3B82F6)
+                                        : const Color(0xFF8B5CF6))),
+                          ),
+                        ],
+                      ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: code.status == 'Active'
                             ? const Color(0xFF10B981).withOpacity(0.1)
@@ -755,7 +977,7 @@ class _HsnSacManagementScreenState extends State<HsnSacManagementScreen> {
                       ),
                       child: Text(code.status,
                           style: GoogleFonts.lato(
-                              fontSize: 10,
+                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: code.status == 'Active'
                                   ? const Color(0xFF10B981)
@@ -763,23 +985,34 @@ class _HsnSacManagementScreenState extends State<HsnSacManagementScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 12),
                 Text(code.description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.lato(
-                        fontSize: 11, color: AppTheme.subtitleGray)),
+                        fontSize: 12, color: AppTheme.subtitleGray)),
                 if (code.gstRate != null) ...[
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(Icons.percent,
-                          size: 12, color: AppTheme.subtitleGray),
-                      const SizedBox(width: 4),
-                      Text('GST Rate: ${code.gstRate}%',
-                          style: GoogleFonts.lato(
-                              fontSize: 11, color: AppTheme.subtitleGray)),
-                    ],
+                  const SizedBox(height: 10),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.percent,
+                            size: 12, color: Color(0xFFF59E0B)),
+                        const SizedBox(width: 4),
+                        Text('GST ${code.gstRate}%',
+                            style: GoogleFonts.lato(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFFF59E0B))),
+                      ],
+                    ),
                   ),
                 ],
               ],
@@ -796,7 +1029,7 @@ class _HsnSacManagementScreenState extends State<HsnSacManagementScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.6,
+        height: MediaQuery.of(context).size.height * 0.65,
         decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
@@ -864,7 +1097,7 @@ class _HsnSacManagementScreenState extends State<HsnSacManagementScreen> {
                           child: OutlinedButton.icon(
                             onPressed: () {
                               Navigator.pop(context);
-                              _createNewCode();
+                              // Navigate to edit
                             },
                             icon: const Icon(Icons.edit, size: 18),
                             label: const Text('Edit'),
@@ -931,40 +1164,38 @@ class _HsnSacManagementScreenState extends State<HsnSacManagementScreen> {
   }
 
   Widget _buildStatCard(String title, int count, IconData icon, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(title,
-                    style: GoogleFonts.lato(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.subtitleGray)),
-                Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8)),
-                    child: Icon(icon, size: 14, color: color)),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(count.toString(),
-                style: GoogleFonts.lato(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87)),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title,
+                  style: GoogleFonts.lato(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.subtitleGray)),
+              Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8)),
+                  child: Icon(icon, size: 14, color: color)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(count.toString(),
+              style: GoogleFonts.lato(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87)),
+        ],
       ),
     );
   }
@@ -1159,15 +1390,18 @@ class _HsnSacManagementScreenState extends State<HsnSacManagementScreen> {
                 _buildMenuItem(Icons.receipt_outlined, 'Bills',
                     () => _navigateToScreen('Bills')),
                 _buildDropdownMenuItem(
-                    Icons.code,
+                    Icons.category,
                     'Master',
                     _isItemExpanded,
                     () => setState(() {
                           _isItemExpanded = !_isItemExpanded;
                         }),
                     [
+                      _buildSubMenuItem(
+                          'Category', () => _navigateToScreen('Category')),
                       _buildSubMenuItem('HSN & SAC Code',
-                          () => _navigateToScreen('HSN & SAC Code')),
+                          () => _navigateToScreen('HSN & SAC Code'),
+                          isActive: true),
                     ]),
                 const SizedBox(height: 8),
               ],
@@ -1246,13 +1480,15 @@ class _HsnSacManagementScreenState extends State<HsnSacManagementScreen> {
     );
   }
 
-  Widget _buildSubMenuItem(String title, VoidCallback onTap) {
+  Widget _buildSubMenuItem(String title, VoidCallback onTap,
+      {bool isActive = false}) {
     return ListTile(
       title: Text(title,
           style: GoogleFonts.lato(
               fontSize: 13,
-              fontWeight: FontWeight.w400,
-              color: AppTheme.subtitleGray)),
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+              color:
+                  isActive ? AppTheme.primaryDarkBlue : AppTheme.subtitleGray)),
       onTap: onTap,
       dense: true,
     );
@@ -1321,7 +1557,7 @@ class _CreateHsnSacCodeScreenState extends State<CreateHsnSacCodeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FC),
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -1362,7 +1598,7 @@ class _CreateHsnSacCodeScreenState extends State<CreateHsnSacCodeScreen> {
                   children: [
                     const Padding(
                         padding: EdgeInsets.all(16),
-                        child: Text('Code Type',
+                        child: Text('Select Code Type',
                             style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -1477,7 +1713,8 @@ class _CreateHsnSacCodeScreenState extends State<CreateHsnSacCodeScreen> {
       bool isSelected, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isSelected ? AppTheme.primaryDarkBlue : Colors.white,

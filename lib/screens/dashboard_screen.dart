@@ -23,6 +23,7 @@ import 'supplier_screen.dart';
 import 'create_supplier_screen.dart';
 import 'supplier_statement_screen.dart';
 import 'purchase_order_screen.dart';
+import 'category_management.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -400,12 +401,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
         break;
       case 'Categories':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Categories screen coming soon'),
-            duration: Duration(seconds: 1),
-            behavior: SnackBarBehavior.floating,
-          ),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const CategoryManagementScreen()),
         );
         break;
       case 'Supplier':
